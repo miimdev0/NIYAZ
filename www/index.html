@@ -52,6 +52,14 @@
       <button id="startBtn" class="primary big glow" type="button">شروع نماز</button>
     </div>
 
+    <div class="glass card tl" id="tlCard">
+      <div class="cardhead"><b>چقدر وقت داری؟</b><span class="tlbadge" id="tlBadge"></span></div>
+      <div class="tlbig" id="tlBig"></div>
+      <div class="tlbar"><i id="tlFill"></i></div>
+      <div class="tlrow"><span id="tlA"></span><span id="tlB"></span></div>
+      <div class="tlmsg" id="tlMsg"></div>
+    </div>
+
     <ul id="list" class="plist"></ul>
 
     <div class="glass card">
@@ -173,8 +181,28 @@
       <b class="aname">نیاز</b>
       <span class="muted">همراه هوشمند نماز · نسخهٔ ۲٫۰</span>
       <div class="sign sm"><span class="signtxt">مجتبی میدانی</span><svg viewBox="0 0 220 24" aria-hidden="true"><path d="M4 16 C40 2 70 26 110 12 S180 6 216 14" fill="none" stroke="url(#sg)" stroke-width="2.4" stroke-linecap="round"/></svg></div>
-      <div class="seal" aria-hidden="true">م · م</div>
+      <div class="seal" aria-hidden="true">میم</div>
     </div>
+  </section>
+
+  <!-- سازنده -->
+  <section id="creator" class="screen" hidden data-tab="creator">
+    <header class="top glass pill"><b>سازنده</b><span class="muted" id="cver"></span></header>
+    <div class="glass card creator">
+      <img src="icon.svg" alt="" class="clogo" id="clogo">
+      <h2 class="cname" id="cname"></h2>
+      <div class="crole" id="crole"></div>
+      <p class="cbio" id="cbio"></p>
+      <div class="clinks" id="clinks"></div>
+      <div class="sign"><span class="signtxt">مجتبی میدانی</span><svg viewBox="0 0 220 24" aria-hidden="true"><path d="M4 16 C40 2 70 26 110 12 S180 6 216 14" fill="none" stroke="url(#sg)" stroke-width="2.4" stroke-linecap="round"/></svg></div>
+      <div class="seal cseal" aria-hidden="true">میم</div>
+    </div>
+    <div class="glass card cstats">
+      <div><b id="cs1">۰</b><span>نماز ثبت‌شده</span></div>
+      <div><b id="cs2">۰</b><span>روز پیاپی</span></div>
+      <div><b id="cs3">۰</b><span>ذکر شمرده‌شده</span></div>
+    </div>
+    <p class="note">«نیاز» با دقت و حوصله ساخته شده تا نمازت با حضور قلب بیشتری همراه باشد.</p>
   </section>
 
   <!-- موقعیت -->
@@ -242,6 +270,7 @@
   <button type="button" data-go="qibla" aria-label="قبله"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span>قبله</span></button>
   <button type="button" data-go="tasbih" aria-label="تسبیح"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="18" cy="9.5" r="2"/><circle cx="16" cy="17" r="2"/><circle cx="8" cy="17" r="2"/><circle cx="6" cy="9.5" r="2"/></svg><span>تسبیح</span></button>
   <button type="button" data-go="settings" aria-label="تنظیمات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>تنظیمات</span></button>
+  <button type="button" data-go="creator" aria-label="سازنده"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span>سازنده</span></button>
 </nav>
 
 <canvas id="fx" aria-hidden="true"></canvas>
