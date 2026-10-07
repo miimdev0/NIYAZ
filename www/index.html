@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#071428">
+<meta name="author" content="Mojtaba Meidani | مجتبی میدانی">
+<title>نیاز · همراه هوشمند نماز</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<!-- نیاز · ساخته‌شده توسط مجتبی میدانی · © Mojtaba Meidani -->
+<body data-phase="night">
+
+<div id="sky" aria-hidden="true">
+  <div class="stars"></div><div class="stars s2"></div>
+  <div class="pattern"></div>
+  <div class="aura"></div>
+</div>
+
+<div id="splash">
+  <img src="icon.svg" alt="" class="splogo">
+  <h1 class="spname">نیاز</h1>
+  <p class="sptag">همراه هوشمند نماز</p>
+  <div class="sign"><span class="signtxt">مجتبی میدانی</span><svg viewBox="0 0 220 24" aria-hidden="true"><path d="M4 16 C40 2 70 26 110 12 S180 6 216 14" fill="none" stroke="url(#sg)" stroke-width="2.4" stroke-linecap="round"/><defs><linearGradient id="sg"><stop offset="0" stop-color="#ffe29a"/><stop offset="1" stop-color="#e0a12b"/></linearGradient></defs></svg></div>
+</div>
+
+<main id="app">
+
+  <!-- خانه -->
+  <section id="home" class="screen" data-tab="home">
+    <header class="top glass pill">
+      <div class="brand"><img src="icon.svg" alt="" class="mini"><div><b>نیاز</b><div class="dates" id="dates"></div></div></div>
+      <button id="locChip" class="chip" type="button">📍 <span id="locName">تهران</span></button>
+    </header>
+
+    <div class="hero glass">
+      <div class="ringwrap">
+        <svg viewBox="0 0 200 200" class="ringsvg" aria-hidden="true">
+          <circle cx="100" cy="100" r="90" class="rtrack"/>
+          <circle cx="100" cy="100" r="90" class="rprog" id="rprog"/>
+        </svg>
+        <div class="rcenter">
+          <div class="rlabel" id="nowText"></div>
+          <div class="rcount" id="count">--:--:--</div>
+          <div class="rsub" id="subText"></div>
+          <div class="rclock" id="clock"></div>
+        </div>
+      </div>
+      <svg id="arc" viewBox="0 0 320 96" class="arc" role="img" aria-label="مسیر خورشید"></svg>
+      <button id="startBtn" class="primary big glow" type="button">شروع نماز</button>
+    </div>
+
+    <ul id="list" class="plist"></ul>
+
+    <div class="glass card">
+      <div class="cardhead"><b>هفتهٔ اخیر</b><span id="streak" class="muted"></span></div>
+      <div id="week" class="week"></div>
+    </div>
+
+    <div class="glass card zday">
+      <div class="cardhead"><b id="zdTitle">ذکر امروز</b><button id="zdGo" class="chip" type="button">شروع شمارش</button></div>
+      <div class="ar sm" id="zdAr" lang="ar" dir="rtl"></div>
+    </div>
+
+    <div class="seg glass" role="group" aria-label="مذهب">
+      <button type="button" data-s="shia">شیعه</button>
+      <button type="button" data-s="sunni">اهل سنت</button>
+    </div>
+  </section>
+
+  <!-- قبله -->
+  <section id="qibla" class="screen" hidden data-tab="qibla">
+    <header class="top glass pill"><b>جهت قبله</b><button id="compassBtn" class="chip" type="button">فعال‌سازی قطب‌نما</button></header>
+    <div class="compass glass" id="compass">
+      <div class="lubber" aria-hidden="true"></div>
+      <div class="rose" id="rose">
+        <span class="dir n">N</span><span class="dir e">E</span><span class="dir s">S</span><span class="dir w">W</span>
+        <div class="kaaba" id="kaaba"><i>🕋</i></div>
+      </div>
+      <div class="cdeg" id="cdeg"></div>
+    </div>
+    <div class="glass card qinfo">
+      <div><span class="muted">زاویه از شمال</span><b id="qDeg"></b></div>
+      <div><span class="muted">فاصله تا کعبه</span><b id="qDist"></b></div>
+      <div><span class="muted">وضعیت</span><b id="qState">—</b></div>
+    </div>
+    <p class="note">گوشی را صاف نگه دار و دور از آهن‌ربا. وقتی کعبه بالای صفحه قرار گرفت و رنگ سبز شد، رو به قبله‌ای.</p>
+  </section>
+
+  <!-- تسبیح -->
+  <section id="tasbih" class="screen" hidden data-tab="tasbih">
+    <header class="top glass pill"><b>تسبیح</b><button id="tbReset" class="chip" type="button">صفر کن</button></header>
+    <div id="tbChips" class="chips"></div>
+    <div class="tbring" id="tbRing"><div class="tbin"><b id="tbCnt">۰</b><span id="tbOf"></span></div></div>
+    <div class="glass card tbzikr"><div class="ar" id="tbAr" lang="ar" dir="rtl"></div><div class="muted" id="tbFa"></div></div>
+    <div class="chips" id="tbTargets"></div>
+    <div class="row"><button id="tbUndo" type="button" class="glass">یکی کم کن</button></div>
+    <p class="note" id="tbToday"></p>
+    <p class="note">هر جای صفحه را لمس کن.</p>
+  </section>
+
+  <!-- تنظیمات -->
+  <section id="settings" class="screen" hidden data-tab="settings">
+    <header class="top glass pill"><b>تنظیمات</b></header>
+
+    <div class="glass card group">
+      <h3>اعلان‌ها</h3>
+      <label>اعلان وقت نماز</label>
+      <div class="seg" id="notifSeg"><button type="button" data-v="off">خاموش</button><button type="button" data-v="on">روشن</button></div>
+      <label>یادآوری قبل از وقت</label>
+      <div class="seg" id="preSeg"><button type="button" data-v="0">ندارد</button><button type="button" data-v="10">۱۰ دقیقه</button><button type="button" data-v="20">۲۰ دقیقه</button><button type="button" data-v="30">۳۰ دقیقه</button></div>
+      <label>اعلان طلوع آفتاب</label>
+      <div class="seg" id="sunSeg"><button type="button" data-v="off">خاموش</button><button type="button" data-v="on">روشن</button></div>
+      <div class="row"><button id="testNotif" type="button" class="glass">اعلان آزمایشی (۵ ثانیه)</button></div>
+      <p class="note" id="notifNote"></p>
+    </div>
+
+    <div class="glass card group">
+      <h3>محاسبهٔ اوقات</h3>
+      <label>روش محاسبه</label>
+      <select id="methodSel" class="field">
+        <option value="auto">خودکار (بر اساس مذهب)</option>
+        <option value="tehran">مؤسسه ژئوفیزیک تهران</option>
+        <option value="mwl">رابطهٔ جهان اسلام</option>
+        <option value="isna">آمریکای شمالی (ISNA)</option>
+        <option value="egypt">مصر</option>
+        <option value="karachi">کراچی</option>
+        <option value="ummalqura">ام‌القری</option>
+      </select>
+      <label>وقت عصر</label>
+      <div class="seg" id="asrSeg"><button type="button" data-v="1">سایه برابر شاخص</button><button type="button" data-v="2">دو برابر (حنفی)</button></div>
+      <label>تنظیم دستی (دقیقه)</label>
+      <div id="adjBox" class="adj"></div>
+    </div>
+
+    <div class="glass card group">
+      <h3>ظاهر و رفتار</h3>
+      <label>آسمان پس‌زمینه</label>
+      <div class="seg" id="skySeg"><button type="button" data-v="auto">زنده</button><button type="button" data-v="night">شب</button><button type="button" data-v="day">روز</button></div>
+      <label>لمس صفحه در نماز</label>
+      <div class="seg" id="tapSeg"><button type="button" data-v="step">مرحله‌به‌مرحله</button><button type="button" data-v="rakat">رکعت‌به‌رکعت</button></div>
+      <label>تعقیبات بعد از نماز</label>
+      <div class="seg" id="tqSeg"><button type="button" data-v="on">نمایش</button><button type="button" data-v="off">بدون تعقیبات</button></div>
+      <label>لرزش</label>
+      <div class="seg" id="vibSeg"><button type="button" data-v="on">روشن</button><button type="button" data-v="off">خاموش</button></div>
+      <label>اندازهٔ متن عربی</label>
+      <div class="row"><button id="fsMinus" type="button" class="glass">کوچک‌تر</button><button id="fsPlus" type="button" class="glass">بزرگ‌تر</button></div>
+    </div>
+
+    <div class="glass card group">
+      <h3>نمازهای قضا</h3>
+      <div id="qazaBox" class="adj"></div>
+    </div>
+
+    <div class="glass card group">
+      <h3>تصویر حالت‌ها</h3>
+      <input class="field img" data-p="stand" type="url" dir="ltr" placeholder="قیام: https://… یا img/qiyam.jpg">
+      <input class="field img" data-p="ruku" type="url" dir="ltr" placeholder="رکوع">
+      <input class="field img" data-p="sajdah" type="url" dir="ltr" placeholder="سجده">
+      <input class="field img" data-p="sit" type="url" dir="ltr" placeholder="نشستن (تشهد)">
+    </div>
+
+    <div class="glass card group">
+      <h3>آمار و داده</h3>
+      <div id="stats" class="muted"></div>
+      <button id="resetStats" class="chip" type="button">پاک کردن آمار</button>
+    </div>
+
+    <div class="glass card about">
+      <img src="icon.svg" alt="" class="alogo">
+      <b class="aname">نیاز</b>
+      <span class="muted">همراه هوشمند نماز · نسخهٔ ۲٫۰</span>
+      <div class="sign sm"><span class="signtxt">مجتبی میدانی</span><svg viewBox="0 0 220 24" aria-hidden="true"><path d="M4 16 C40 2 70 26 110 12 S180 6 216 14" fill="none" stroke="url(#sg)" stroke-width="2.4" stroke-linecap="round"/></svg></div>
+      <div class="seal" aria-hidden="true">م · م</div>
+    </div>
+  </section>
+
+  <!-- موقعیت -->
+  <section id="loc" class="screen" hidden>
+    <header class="top glass pill"><button class="chip back" type="button">بازگشت</button><b>انتخاب موقعیت</b><span class="spacer"></span></header>
+    <button id="gpsBtn" class="primary" type="button">استفاده از موقعیت دقیق من</button>
+    <input id="citySearch" class="field" type="search" placeholder="جستجوی شهر…" autocomplete="off">
+    <div id="gpsMsg" class="note"></div>
+    <ul id="cityList" class="plist"></ul>
+  </section>
+
+  <!-- نماز -->
+  <section id="pray" class="screen full" hidden>
+    <header class="top glass pill">
+      <button id="exitBtn" class="chip" type="button">خروج</button>
+      <div id="title" class="ptitle"></div>
+      <span class="spacer"></span>
+    </header>
+    <div id="rakats" class="rakats"></div>
+    <div class="pose" id="pose"><img id="poseImg" alt="" hidden><span id="poseLabel"></span></div>
+    <div class="zikr glass card" id="zikr">
+      <div class="stepname" id="stepName"></div>
+      <div class="ar" id="arText" lang="ar" dir="rtl"></div>
+      <div class="fa" id="faText"></div>
+      <div class="badges" id="badges"></div>
+    </div>
+    <div class="dots" id="dots"></div>
+    <div class="tapnote" id="tapNote"></div>
+    <div class="row"><button id="prevBtn" type="button" class="glass">قبلی</button></div>
+  </section>
+
+  <!-- تعقیبات -->
+  <section id="taqib" class="screen full" hidden>
+    <header class="top glass pill">
+      <button id="skipBtn" class="chip" type="button">رد کردن</button>
+      <div id="tqTitle" class="ptitle"></div>
+      <span class="spacer"></span>
+    </header>
+    <div id="tqBar" class="rakats"></div>
+    <div class="tbring" id="ring"><div class="tbin"><b id="cnt">۰</b><span id="cntOf"></span></div></div>
+    <div class="zikr glass card" id="tqCard">
+      <div class="stepname" id="tqName"></div>
+      <div class="ar" id="tqAr" lang="ar" dir="rtl"></div>
+      <div class="fa" id="tqFa"></div>
+    </div>
+    <div class="tapnote">هر جای صفحه را لمس کن</div>
+    <div class="row"><button id="tqPrev" type="button" class="glass">قبلی</button></div>
+  </section>
+
+  <!-- پایان -->
+  <section id="end" class="screen" hidden>
+    <div class="glass card endcard">
+      <img src="icon.svg" alt="" class="alogo">
+      <h2>قبول باشد</h2>
+      <p id="endText"></p>
+      <div class="sign sm"><span class="signtxt">مجتبی میدانی</span></div>
+      <button id="homeBtn" class="primary big glow" type="button">بازگشت</button>
+    </div>
+  </section>
+
+</main>
+
+<nav id="tabs" class="glass" aria-label="بخش‌ها">
+  <button type="button" data-go="home" aria-label="خانه"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>خانه</span></button>
+  <button type="button" data-go="qibla" aria-label="قبله"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span>قبله</span></button>
+  <button type="button" data-go="tasbih" aria-label="تسبیح"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="18" cy="9.5" r="2"/><circle cx="16" cy="17" r="2"/><circle cx="8" cy="17" r="2"/><circle cx="6" cy="9.5" r="2"/></svg><span>تسبیح</span></button>
+  <button type="button" data-go="settings" aria-label="تنظیمات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>تنظیمات</span></button>
+</nav>
+
+<canvas id="fx" aria-hidden="true"></canvas>
+<div id="toast" class="toast" role="status" hidden></div>
+<script src="script.js"></script>
+</body>
+</html>
