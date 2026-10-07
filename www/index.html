@@ -198,6 +198,10 @@
       <h3>ظاهر و رفتار</h3>
       <label>آسمان پس‌زمینه</label>
       <div class="seg" id="skySeg"><button type="button" data-v="auto">زنده</button><button type="button" data-v="night">شب</button><button type="button" data-v="day">روز</button></div>
+      <label>پیشروی خودکار مراحل نماز</label>
+      <div class="seg" id="autoSeg"><button type="button" data-v="on">روشن</button><button type="button" data-v="off">خاموش</button></div>
+      <label>سرعت نماز (مدت هر مرحله)</label>
+      <div class="seg" id="spdSeg"><button type="button" data-v="slow">آهسته</button><button type="button" data-v="normal">معمولی</button><button type="button" data-v="fast">تند</button></div>
       <label>لمس صفحه در نماز</label>
       <div class="seg" id="tapSeg"><button type="button" data-v="step">مرحله‌به‌مرحله</button><button type="button" data-v="rakat">رکعت‌به‌رکعت</button></div>
       <label>تعقیبات بعد از نماز</label>
@@ -282,7 +286,8 @@
     </div>
     <div class="dots" id="dots"></div>
     <div class="tapnote" id="tapNote"></div>
-    <div class="row"><button id="prevBtn" type="button" class="glass">قبلی</button></div>
+    <div class="autobar" id="autoBar" hidden><i id="autoFill"></i></div>
+    <div class="row"><button id="prevBtn" type="button" class="glass">قبلی</button><button id="autoBtn" type="button" class="glass" hidden></button></div>
   </section>
 
   <!-- تعقیبات -->
