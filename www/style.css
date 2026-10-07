@@ -24,7 +24,8 @@ body[data-prayer="maghrib"]{--aura:#ff7a5c}
 body[data-prayer="isha"]{--aura:#9a8bff}
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;min-height:100%}
+html,body{margin:0;min-height:100%;max-width:100%;overflow-x:hidden}
+html{overflow-x:clip}
 body{font-family:var(--font);color:var(--ink);background:var(--sky1);display:flex;justify-content:center;user-select:none;touch-action:manipulation;overflow-x:hidden}
 button,input,select{font:inherit;color:inherit}
 [hidden]{display:none!important}
@@ -45,7 +46,7 @@ body.praying .aura{opacity:.32;animation:breathe 7s ease-in-out infinite}
 @keyframes breathe{50%{transform:translate(-50%,-50%) scale(1.12);opacity:.2}}
 
 /* ---------- ساختار ---------- */
-#app{width:100%;max-width:470px;padding:14px 16px calc(96px + env(safe-area-inset-bottom,0px))}
+#app{overflow-x:clip;width:100%;max-width:470px;padding:14px 16px calc(96px + env(safe-area-inset-bottom,0px))}
 body.praying #app{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
 .screen{display:flex;flex-direction:column;gap:14px;animation:enter .35s ease-out}
 .screen.full{min-height:calc(100dvh - 40px)}
@@ -111,10 +112,10 @@ h3{margin:0 0 2px;font-size:16px}
 .ar.sm{font-size:21px;line-height:2}
 
 /* ---------- قبله ---------- */
-.compass{position:relative;width:min(80vw,310px);aspect-ratio:1;margin:6px auto;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:box-shadow .3s,border-color .3s}
+.compass{position:relative;overflow:hidden;contain:paint;width:min(80vw,310px);aspect-ratio:1;margin:6px auto;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:box-shadow .3s,border-color .3s}
 .compass.aligned{border-color:#4ade80;box-shadow:0 0 44px rgba(74,222,128,.55)}
-.lubber{position:absolute;top:-8px;left:50%;margin-left:-9px;border:9px solid transparent;border-top:0;border-bottom:16px solid var(--gold);z-index:2}
-.rose{position:absolute;inset:10px;border-radius:50%;transition:transform .15s linear}
+.lubber{position:absolute;top:3px;left:50%;margin-left:-8px;border:8px solid transparent;border-top:0;border-bottom:14px solid var(--gold);z-index:2}
+.rose{position:absolute;inset:20px;border-radius:50%;will-change:transform;transition:transform .12s linear}
 .rose::before{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(from -1deg,rgba(255,255,255,.55) 0 2deg,transparent 2deg 10deg);-webkit-mask:radial-gradient(circle,transparent 66%,#000 67%);mask:radial-gradient(circle,transparent 66%,#000 67%)}
 .dir,.kaaba{position:absolute}
 .dir{font-size:15px;font-weight:700;color:var(--ink)}
@@ -123,7 +124,7 @@ h3{margin:0 0 2px;font-size:16px}
 .dir.e{right:20%;top:50%;transform:translateY(-50%)}
 .dir.w{left:20%;top:50%;transform:translateY(-50%)}
 .kaaba{inset:0;transform-origin:50% 50%}
-.kaaba i{position:absolute;top:-6px;left:50%;margin-left:-18px;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:22px;background:var(--glass);border:1px solid var(--gold)}
+.kaaba i{position:absolute;top:-10px;left:50%;margin-left:-18px;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:22px;background:var(--glass);border:1px solid var(--gold)}
 .cdeg{position:absolute;font-size:28px;font-weight:800;direction:ltr;color:var(--gold)}
 .qinfo{display:flex;justify-content:space-around;text-align:center}
 .qinfo div{display:flex;flex-direction:column;gap:4px}
@@ -173,7 +174,7 @@ h3{margin:0 0 2px;font-size:16px}
 .about{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;position:relative}
 .alogo{width:84px;height:84px;border-radius:22px;box-shadow:0 8px 28px rgba(0,0,0,.4)}
 .aname{font-size:22px}
-.seal{position:absolute;left:16px;bottom:16px;width:54px;height:54px;border-radius:50%;border:2px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;transform:rotate(-14deg);opacity:.85;box-shadow:inset 0 0 0 3px rgba(244,194,91,.18)}
+.seal{position:absolute;left:16px;bottom:16px;width:54px;height:54px;border-radius:50%;border:2px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;transform:rotate(-14deg);opacity:.85;box-shadow:inset 0 0 0 3px rgba(244,194,91,.18)}
 .endcard{text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:40px}
 .endcard h2{margin:0;font-size:26px}
 .endcard p{margin:0;color:var(--muted);line-height:1.9}
@@ -204,3 +205,31 @@ body.praying #tabs,body.sub #tabs{display:none}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(100px + env(safe-area-inset-bottom,0px));max-width:calc(100% - 32px);background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1c1400;padding:12px 20px;border-radius:999px;font-weight:700;font-size:14px;box-shadow:0 8px 28px rgba(0,0,0,.35);z-index:30;text-align:center}
 
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- صفحهٔ سازنده ---------- */
+.creator{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:26px 18px;position:relative;overflow:hidden}
+.creator::before{content:"";position:absolute;inset:-40% -20% auto;height:90%;background:radial-gradient(closest-side,rgba(244,194,91,.28),transparent);pointer-events:none}
+.clogo{width:104px;height:104px;border-radius:28px;box-shadow:0 10px 40px rgba(0,0,0,.45);position:relative}
+.cname{font-size:34px;font-weight:800;margin:6px 0 0;background:linear-gradient(135deg,#ffe29a,#e0a12b);-webkit-background-clip:text;background-clip:text;color:transparent;position:relative}
+.crole{color:var(--muted);font-size:14px;position:relative}
+.cbio{line-height:2;font-size:14.5px;position:relative;max-width:34ch}
+.clinks{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.cstats{display:flex;justify-content:space-around;text-align:center}
+.cstats div{display:flex;flex-direction:column;gap:2px}
+.cstats b{font-size:20px;color:var(--gold)}
+.cstats span{font-size:12px;color:var(--muted)}
+.cseal{position:static;margin-top:6px}
+
+/* ---------- چقدر وقت داری ---------- */
+.tl{--tc:#5fd3d0;display:flex;flex-direction:column;gap:10px}
+.tl.warn{--tc:#f4c25b}.tl.danger{--tc:#ff6b6b;border-color:rgba(255,107,107,.55);box-shadow:0 0 26px rgba(255,107,107,.25)}
+.tl.done{--tc:#4ade80}
+.tl .cardhead{margin:0}
+.tlbadge{font-size:12px;padding:4px 12px;border-radius:999px;background:var(--tc);color:#10131a;font-weight:700}
+.tlbig{font-size:26px;font-weight:800;color:var(--tc);line-height:1.5}
+.tl.danger .tlbig{animation:warnp 1.2s ease-in-out infinite}
+@keyframes warnp{50%{opacity:.55}}
+.tlbar{height:12px;border-radius:8px;background:rgba(255,255,255,.14);overflow:hidden;direction:ltr}
+.tlbar i{display:block;height:100%;width:0;border-radius:8px;background:var(--tc);transition:width 1s linear,background .4s}
+.tlrow{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted)}
+.tlmsg{font-size:14px;line-height:1.9}
