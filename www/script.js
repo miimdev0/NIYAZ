@@ -131,7 +131,7 @@
   function pr(k) { return P.filter(function (p) { return p.k === k; })[0]; }
   var zero5 = function () { return { fajr: 0, zuhr: 0, asr: 0, maghrib: 0, isha: 0 }; };
   var cfg = Object.assign({ sky: "auto", tap: "step", tq: "on", notif: "off", pre: "0", sun: "off", vib: "on",
-    fs: 26, method: "auto", asr: "1", snd: "azan", iq: "0", adj: zero5(), qaza: zero5(), imgs: {} }, load("rk-cfg", {}));
+    fs: 26, method: "auto", asr: "1", snd: "azan", iq: "0", auto: "on", spd: "normal", adj: zero5(), qaza: zero5(), imgs: {} }, load("rk-cfg", {}));
   cfg.adj = Object.assign(zero5(), cfg.adj); cfg.qaza = Object.assign(zero5(), cfg.qaza);
   var loc = load("rk-loc", { label: "تهران", lat: 35.6892, lng: 51.389, tz: "Asia/Tehran" });
   var scheme = load("rk-scheme", "shia");
@@ -214,26 +214,26 @@
   function buildSteps(p, r, sch) {
     var shia = sch === "shia", total = p.r, last = r === total;
     var tash = last || (r === 2 && total > 2), loud = p.loud.indexOf(r) >= 0, S = [];
-    if (r === 1) S.push({ name: "تکبیرة‌الاحرام", ar: T.takbir, fa: "نیت کن، دست‌ها را تا بناگوش بالا ببر و بگو", pose: "stand" });
+    if (r === 1) S.push({ name: "تکبیرة‌الاحرام", ar: T.takbir, fa: "نیت کن، دست‌ها را تا بناگوش بالا ببر و بگو", pose: "stand", d: 5 });
     var q = { name: "قیام", pose: "stand", tags: [loud ? "بلند" : "آهسته"] };
-    if (r <= 2) { q.ar = T.fatiha; q.fa = "سورهٔ حمد، سپس یک سوره (مثلاً توحید)"; }
-    else if (shia) { q.ar = T.arba; q.fa = "یک بار حمد، یا تسبیحات اربعه (۳ بار)"; q.tags = ["آهسته", "۳ بار"]; }
-    else { q.ar = T.fatiha; q.fa = "فقط سورهٔ حمد"; q.tags = ["آهسته"]; }
+    if (r <= 2) { q.ar = T.fatiha; q.fa = "سورهٔ حمد، سپس یک سوره (مثلاً توحید)"; q.d = 40; }
+    else if (shia) { q.ar = T.arba; q.fa = "یک بار حمد، یا تسبیحات اربعه (۳ بار)"; q.tags = ["آهسته", "۳ بار"]; q.d = 15; }
+    else { q.ar = T.fatiha; q.fa = "فقط سورهٔ حمد"; q.tags = ["آهسته"]; q.d = 25; }
     S.push(q);
-    if (shia && r === 2) S.push({ name: "قنوت (مستحب)", ar: T.qunut, fa: "دست‌ها را مقابل صورت بگیر و دعا کن", pose: "stand", tags: ["اختیاری"] });
-    S.push({ name: "رکوع", ar: T.ruku, fa: "با «الله اکبر» به رکوع برو؛ دست‌ها روی زانو", pose: "ruku", tags: ["۳ بار"] });
-    S.push({ name: "برخاستن از رکوع", ar: shia ? "سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ" : "سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ ۝ رَبَّنَا وَلَكَ الْحَمْدُ", fa: "صاف بایست و آرام بگیر", pose: "stand" });
-    S.push({ name: "سجدهٔ اول", ar: T.sajdah, fa: "با «الله اکبر» به سجده برو؛ پیشانی، دو کف، دو زانو و دو شست پا روی زمین", pose: "sajdah", tags: ["۳ بار"] });
-    S.push({ name: "نشستن بین دو سجده", ar: shia ? "أَسْتَغْفِرُ اللَّهَ رَبِّي وَأَتُوبُ إِلَيْهِ" : "رَبِّ اغْفِرْ لِي", fa: "با «الله اکبر» بنشین و آرام بگیر", pose: "sit" });
-    S.push({ name: "سجدهٔ دوم", ar: T.sajdah, fa: "دوباره با «الله اکبر» به سجده برو", pose: "sajdah", tags: ["۳ بار"], rk: true });
+    if (shia && r === 2) S.push({ name: "قنوت (مستحب)", ar: T.qunut, fa: "دست‌ها را مقابل صورت بگیر و دعا کن", pose: "stand", tags: ["اختیاری"], d: 15 });
+    S.push({ name: "رکوع", ar: T.ruku, fa: "با «الله اکبر» به رکوع برو؛ دست‌ها روی زانو", pose: "ruku", tags: ["۳ بار"], d: 8 });
+    S.push({ name: "برخاستن از رکوع", ar: shia ? "سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ" : "سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ ۝ رَبَّنَا وَلَكَ الْحَمْدُ", fa: "صاف بایست و آرام بگیر", pose: "stand", d: 4 });
+    S.push({ name: "سجدهٔ اول", ar: T.sajdah, fa: "با «الله اکبر» به سجده برو؛ پیشانی، دو کف، دو زانو و دو شست پا روی زمین", pose: "sajdah", tags: ["۳ بار"], d: 9 });
+    S.push({ name: "نشستن بین دو سجده", ar: shia ? "أَسْتَغْفِرُ اللَّهَ رَبِّي وَأَتُوبُ إِلَيْهِ" : "رَبِّ اغْفِرْ لِي", fa: "با «الله اکبر» بنشین و آرام بگیر", pose: "sit", d: 4 });
+    S.push({ name: "سجدهٔ دوم", ar: T.sajdah, fa: "دوباره با «الله اکبر» به سجده برو", pose: "sajdah", tags: ["۳ بار"], d: 9, rk: true });
     if (tash) {
       var ts = shia ? T.tashShia : T.tashSunni;
       if (!shia && last) ts += " ۝ " + T.salawat;
-      S.push({ name: last ? "تشهد آخر" : "تشهد", ar: ts, fa: last ? "بنشین و تشهد را بخوان" : "بنشین و تشهد را بخوان، سپس برای رکعت بعد برخیز", pose: "sit", rk: true });
+      S.push({ name: last ? "تشهد آخر" : "تشهد", ar: ts, fa: last ? "بنشین و تشهد را بخوان" : "بنشین و تشهد را بخوان، سپس برای رکعت بعد برخیز", pose: "sit", d: last ? (shia ? 15 : 32) : 12, rk: true });
     } else {
-      S.push({ name: "برخاستن", ar: shia ? "بِحَوْلِ اللَّهِ وَقُوَّتِهِ أَقُومُ وَأَقْعُدُ" : T.takbir, fa: "برای رکعت بعد برخیز", pose: "stand", rk: true });
+      S.push({ name: "برخاستن", ar: shia ? "بِحَوْلِ اللَّهِ وَقُوَّتِهِ أَقُومُ وَأَقْعُدُ" : T.takbir, fa: "برای رکعت بعد برخیز", pose: "stand", d: 3, rk: true });
     }
-    if (last) S.push({ name: "سلام نماز", ar: shia ? T.salamShia : T.salamSunni, fa: shia ? "به راست و چپ نگاه کن و سلام بده" : "اول به راست، بعد به چپ سلام بده", pose: "sit", rk: true });
+    if (last) S.push({ name: "سلام نماز", ar: shia ? T.salamShia : T.salamSunni, fa: shia ? "به راست و چپ نگاه کن و سلام بده" : "اول به راست، بعد به چپ سلام بده", pose: "sit", d: 8, rk: true });
     return S;
   }
 
@@ -511,6 +511,7 @@
     SCREENS.forEach(function (s) { $(s).hidden = s !== id; });
     var tab = $(id).dataset.tab;
     all("#tabs button").forEach(function (b) { b.setAttribute("aria-current", b.dataset.go === tab); });
+    if (id !== "pray") autoStop();
     var praying = id === "pray" || id === "taqib";
     document.body.classList.toggle("praying", praying);
     document.body.classList.toggle("sub", id === "loc" || id === "end");
@@ -625,9 +626,49 @@
   var taps = 0;
   $("clogo").onclick = function () { taps++; if (taps >= 5) { taps = 0; confetti(); buzz([40, 30, 40]); toast("ساخته‌شده با عشق توسط " + CREATOR.name); } };
 
+  /* ================= پیشروی خودکار نماز =================
+     هر مرحله مدت خودش را دارد (فیلد d در buildSteps، به ثانیه)؛ تمام که شد خودکار می‌رود مرحلهٔ بعد.
+     لمس صفحه هنوز کار می‌کند و مرحله را زودتر رد می‌کند. */
+  var autoT = null, autoStart = 0, autoLeft = 0, autoDur = 0, autoHold = false;
+  var SPEED = { slow: 1.4, normal: 1, fast: 0.75 };
+  function stepDur() {
+    var base = 0;
+    if (cfg.tap === "rakat") steps.forEach(function (x) { base += x.d || 8; });
+    else base = steps[sess.s].d || 8;
+    return Math.max(2, base * (SPEED[cfg.spd] || 1));
+  }
+  function autoStop() { clearTimeout(autoT); autoT = null; }
+  function barSet(pct, sec) {
+    var el = $("autoFill"); el.style.transition = "none"; el.style.width = pct + "%";
+    if (sec > 0) { void el.offsetWidth; el.style.transition = "width " + sec + "s linear"; el.style.width = "100%"; }
+  }
+  function drawAutoBtn() { $("autoBtn").textContent = autoHold ? "▶ ادامهٔ خودکار" : "⏸ توقف خودکار"; }
+  function autoRun(left, pct) {
+    autoStop(); autoStart = Date.now(); autoLeft = left;
+    autoT = setTimeout(function () { autoT = null; prayNext(); }, left * 1000);
+    barSet(pct, left);
+  }
+  function autoArm() {
+    autoStop();
+    var on = cfg.auto === "on" && sess && sess.t === "p";
+    $("autoBar").hidden = !on; $("autoBtn").hidden = !on;
+    if (!on) return;
+    autoDur = stepDur(); autoLeft = autoDur; drawAutoBtn();
+    if (autoHold) { barSet(0, 0); return; }
+    autoRun(autoDur, 0);
+  }
+  function autoToggle() {
+    if (autoHold) { autoHold = false; drawAutoBtn(); autoRun(autoLeft, (1 - autoLeft / autoDur) * 100); }
+    else {
+      autoHold = true; autoStop();
+      autoLeft = Math.max(0.5, autoLeft - (Date.now() - autoStart) / 1000);
+      barSet((1 - autoLeft / autoDur) * 100, 0); drawAutoBtn();
+    }
+  }
+
   /* ================= نماز ================= */
   var steps = [];
-  function start(k) { sess = { t: "p", k: k, r: 1, s: 0 }; save("rk-sess", sess); renderPray(); }
+  function start(k) { autoHold = false; sess = { t: "p", k: k, r: 1, s: 0 }; save("rk-sess", sess); renderPray(); }
   function renderPray() {
     var p = pr(sess.k);
     steps = buildSteps(p, sess.r, scheme);
@@ -646,9 +687,10 @@
     $("badges").innerHTML = (st.tags || []).map(function (t) { return '<span class="' + (t === "بلند" ? "loud" : "") + '">' + t + "</span>"; }).join("");
     var dh = ""; steps.forEach(function (_, j) { dh += '<i class="' + (j === sess.s ? "on" : "") + '"></i>'; });
     $("dots").innerHTML = dh;
-    $("tapNote").textContent = cfg.tap === "rakat" ? "هر لمس = یک رکعت" : "هر جای صفحه را لمس کن";
+    $("tapNote").textContent = cfg.auto === "on" ? "مراحل خودکار پیش می‌روند · لمس = رد کردن مرحله" : (cfg.tap === "rakat" ? "هر لمس = یک رکعت" : "هر جای صفحه را لمس کن");
     var zk = $("zikr"); zk.classList.remove("slide"); void zk.offsetWidth; zk.classList.add("slide");
     save("rk-sess", sess);
+    autoArm();
   }
   function prayNext() {
     var p = pr(sess.k);
@@ -853,7 +895,7 @@
   /* ================= تنظیمات ================= */
   function applyCfg() {
     document.documentElement.style.setProperty("--arfs", cfg.fs + "px");
-    [["skySeg", "sky"], ["tapSeg", "tap"], ["tqSeg", "tq"], ["notifSeg", "notif"], ["preSeg", "pre"], ["sunSeg", "sun"], ["vibSeg", "vib"], ["asrSeg", "asr"], ["sndSeg", "snd"], ["iqSeg", "iq"]].forEach(function (x) {
+    [["skySeg", "sky"], ["tapSeg", "tap"], ["tqSeg", "tq"], ["notifSeg", "notif"], ["preSeg", "pre"], ["sunSeg", "sun"], ["vibSeg", "vib"], ["asrSeg", "asr"], ["sndSeg", "snd"], ["iqSeg", "iq"], ["autoSeg", "auto"], ["spdSeg", "spd"]].forEach(function (x) {
       all("#" + x[0] + " button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.v === String(cfg[x[1]])); });
     });
     $("methodSel").value = cfg.method;
@@ -897,6 +939,7 @@
   $("exitBtn").onclick = function () { sess = null; save("rk-sess", null); go("home"); };
   $("skipBtn").onclick = function () { endAll("نمازت ثبت شد."); };
   $("prevBtn").onclick = function (e) { e.stopPropagation(); prayPrev(); };
+  $("autoBtn").onclick = function (e) { e.stopPropagation(); autoToggle(); };
   $("tqPrev").onclick = function (e) { e.stopPropagation(); tqPrev(); };
   $("compassBtn").onclick = startCompass;
   $("zdGo").onclick = function () { var zd = zdayOf(C.z); tb = Object.assign(tb, { ar: zd[1], fa: zd[0], c: 0, t: 100, rounds: 0 }); go("tasbih"); };
@@ -931,7 +974,7 @@
 
   // تنظیمات
   seg("skySeg", "sky", function () { if (C) setPhase(); });
-  seg("tapSeg", "tap"); seg("tqSeg", "tq"); seg("vibSeg", "vib");
+  seg("tapSeg", "tap"); seg("tqSeg", "tq"); seg("vibSeg", "vib"); seg("autoSeg", "auto"); seg("spdSeg", "spd");
   seg("notifSeg", "notif", function () { if (cfg.notif === "on") enableNotif(); else { scheduleAll(); } });
   seg("preSeg", "pre", reschedule); seg("sunSeg", "sun", reschedule);
   seg("sndSeg", "snd", function () { reschedule(); if (cfg.snd === "default") stopSound(); else playSound(cfg.snd); });
@@ -962,7 +1005,7 @@
   $("splash").onclick = function () { $("splash").classList.add("hide"); };
   C = compute();
   if (sess && sess.t === "q" && sess.k && pr(sess.k)) renderTq();
-  else if (sess && sess.k && pr(sess.k)) renderPray();
+  else if (sess && sess.k && pr(sess.k)) { autoHold = true; renderPray(); toast("نماز نیمه‌کاره مانده بود؛ برای ادامه «ادامهٔ خودکار» را بزن."); }
   else go("home");
   if (NATIVE && cfg.notif === "on") reschedule();
 })();
