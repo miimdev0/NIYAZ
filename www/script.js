@@ -42,6 +42,40 @@
   var NATIVE = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
   function LN() { return NATIVE && window.Capacitor.Plugins ? window.Capacitor.Plugins.LocalNotifications : null; }
 
+  /* ================= پخش صدا (اذان / صدای ملایم) =================
+     فایل‌ها در پوشهٔ www/audio هستند: azan.mp3 و soft.mp3 (ogg یا wav هم می‌شود).
+     همین فایل‌ها هنگام ساخت APK برای صدای اعلان هم استفاده می‌شوند. */
+  var EXTS = ["mp3", "ogg", "wav"], audioEl = null, playing = "", sndToken = 0;
+  function stopSound() {
+    sndToken++;
+    if (audioEl) { try { audioEl.pause(); } catch (e) {} audioEl = null; }
+    playing = ""; drawPlayer();
+  }
+  function playSound(name, cb) {
+    stopSound();
+    var i = 0, token = sndToken;
+    (function next() {
+      if (token !== sndToken) return;
+      if (i >= EXTS.length) { if (cb) cb(false); return; }
+      var a = new Audio("audio/" + name + "." + EXTS[i++]), moved = false;
+      function mv() { if (moved) return; moved = true; next(); }
+      a.onerror = mv;
+      a.onended = function () { if (token === sndToken) { audioEl = null; playing = ""; drawPlayer(); } };
+      var pr = a.play();
+      if (pr && pr.then) {
+        pr.then(function () {
+          if (token !== sndToken) { a.pause(); return; }
+          audioEl = a; playing = name; drawPlayer(); if (cb) cb(true);
+        }).catch(function (e) { if (e && e.name === "NotAllowedError") { if (cb) cb(false); } else mv(); });
+      } else { audioEl = a; playing = name; drawPlayer(); if (cb) cb(true); }
+    })();
+  }
+  // صدای هشدار وقتی برنامه باز است (مرورگر)
+  function alertSound() {
+    if (cfg.snd === "default") { beep(); return; }
+    playSound(cfg.snd, function (ok) { if (!ok) beep(); });
+  }
+
   /* ================= تصاویر حالت‌ها =================
      آدرس تصویر را اینجا یا از «تنظیمات» وارد کن؛ فایل محلی هم می‌شود: "img/ruku.jpg" */
   var DEFAULT_IMAGES = { stand: "", ruku: "", sajdah: "", sit: "" };
@@ -97,7 +131,7 @@
   function pr(k) { return P.filter(function (p) { return p.k === k; })[0]; }
   var zero5 = function () { return { fajr: 0, zuhr: 0, asr: 0, maghrib: 0, isha: 0 }; };
   var cfg = Object.assign({ sky: "auto", tap: "step", tq: "on", notif: "off", pre: "0", sun: "off", vib: "on",
-    fs: 26, method: "auto", asr: "1", adj: zero5(), qaza: zero5(), imgs: {} }, load("rk-cfg", {}));
+    fs: 26, method: "auto", asr: "1", snd: "azan", iq: "0", adj: zero5(), qaza: zero5(), imgs: {} }, load("rk-cfg", {}));
   cfg.adj = Object.assign(zero5(), cfg.adj); cfg.qaza = Object.assign(zero5(), cfg.qaza);
   var loc = load("rk-loc", { label: "تهران", lat: 35.6892, lng: 51.389, tz: "Asia/Tehran" });
   var scheme = load("rk-scheme", "shia");
@@ -472,7 +506,7 @@
   }
 
   /* ================= ناوبری ================= */
-  var SCREENS = ["home", "qibla", "tasbih", "settings", "creator", "loc", "pray", "taqib", "end"];
+  var SCREENS = ["home", "qibla", "azan", "tasbih", "settings", "creator", "loc", "pray", "taqib", "end"];
   function show(id) {
     SCREENS.forEach(function (s) { $(s).hidden = s !== id; });
     var tab = $(id).dataset.tab;
@@ -494,9 +528,83 @@
     show(tab);
     if (tab === "home") renderHome();
     if (tab === "qibla") { drawQibla(); var D = window.DeviceOrientationEvent; if (!(D && typeof D.requestPermission === "function")) startCompass(); }
+    if (tab !== "azan" && playing) stopSound();
+    if (tab === "azan") renderAzan();
     if (tab === "tasbih") drawTb();
     if (tab === "settings") { applyCfg(); buildAdj(); renderStats(); }
     if (tab === "creator") renderCreator();
+  }
+
+  /* ================= اذان و اقامه ================= */
+  var AZ = {
+    akbar:  ["اللَّهُ أَكْبَرُ", "خدا بزرگ‌تر است"],
+    tawhid: ["أَشْهَدُ أَنْ لَا إِلَٰهَ إِلَّا اللَّهُ", "گواهی می‌دهم که معبودی جز خدای یکتا نیست"],
+    risala: ["أَشْهَدُ أَنَّ مُحَمَّدًا رَسُولُ اللَّهِ", "گواهی می‌دهم که محمد (ص) فرستادهٔ خداست"],
+    wilaya: ["أَشْهَدُ أَنَّ عَلِيًّا وَلِيُّ اللَّهِ", "گواهی می‌دهم که علی (ع) ولی خداست"],
+    salah:  ["حَيَّ عَلَى الصَّلَاةِ", "به سوی نماز بشتاب"],
+    falah:  ["حَيَّ عَلَى الْفَلَاحِ", "به سوی رستگاری بشتاب"],
+    khayr:  ["حَيَّ عَلَى خَيْرِ الْعَمَلِ", "به سوی بهترین کار بشتاب"],
+    nawm:   ["الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ", "نماز از خواب بهتر است"],
+    qad:    ["قَدْ قَامَتِ الصَّلَاةُ", "نماز برپا شد"],
+    la:     ["لَا إِلَٰهَ إِلَّا اللَّهُ", "معبودی جز خدا نیست"]
+  };
+  var azTab = "adhan";
+  function azanLines(tab, shia) {
+    var L = [];
+    function add(k, x, tag) { L.push({ ar: AZ[k][0], fa: AZ[k][1], x: x, tag: tag || "" }); }
+    if (tab === "adhan") {
+      add("akbar", 4); add("tawhid", 2); add("risala", 2);
+      if (shia) add("wilaya", 2, "شهادت ثالثه · رایج در شیعه");
+      add("salah", 2); add("falah", 2);
+      if (shia) add("khayr", 2); else add("nawm", 2, "فقط اذان صبح");
+      add("akbar", 2); add("la", shia ? 2 : 1);
+    } else if (shia) {
+      add("akbar", 2); add("tawhid", 2); add("risala", 2); add("wilaya", 2, "شهادت ثالثه · رایج در شیعه");
+      add("salah", 2); add("falah", 2); add("khayr", 2); add("qad", 2); add("akbar", 2); add("la", 1);
+    } else {
+      add("akbar", 2); add("tawhid", 1); add("risala", 1); add("salah", 1); add("falah", 1); add("qad", 2); add("akbar", 2); add("la", 1);
+    }
+    return L;
+  }
+  function nextAdhan() {
+    var now = Date.now();
+    for (var d = 0; d < 2; d++) {
+      var z = zoneNow(loc.tz, new Date(now + d * 86400000)), t = times(z, loc.lat, loc.lng);
+      for (var i = 0; i < P.length; i++) { var at = absTime(z, t[P[i].k]); if (at > now) return { p: P[i], at: at, h: t[P[i].k] }; }
+    }
+    return null;
+  }
+  function drawAzan() {
+    var now = Date.now(), iq = +cfg.iq || 0, z = zoneNow(loc.tz, new Date(now)), t = times(z, loc.lat, loc.lng), rec = null, i, nx, left, name, badge;
+    if (iq) for (i = 0; i < P.length; i++) { var a = absTime(z, t[P[i].k]); if (a <= now && now < a + iq * 60000) rec = { p: P[i], at: a, h: t[P[i].k] }; }
+    nx = rec || nextAdhan(); if (!nx) return;
+    if (rec) { name = "اقامهٔ نماز " + nx.p.n; badge = "تا اقامه"; left = (nx.at + iq * 60000 - now) / 1000; }
+    else { name = "اذان " + nx.p.n; badge = "اذان بعدی"; left = (nx.at - now) / 1000; }
+    $("azNextName").textContent = name; $("azNextBadge").textContent = badge;
+    $("azNextAdhan").textContent = hhmm(nx.h);
+    $("azNextIqama").textContent = iq ? hhmm(nx.h + iq / 60) : "—";
+    $("azNextLeft").textContent = hms(left);
+  }
+  function drawPlayer() {
+    var a = $("azPlayAzan"), b = $("azPlaySoft"); if (!a) return;
+    a.classList.toggle("on", playing === "azan"); b.classList.toggle("on", playing === "soft");
+    $("azPlayMsg").textContent = playing ? "در حال پخش…" : "";
+  }
+  function renderAzan() {
+    var shia = scheme === "shia", h = "";
+    $("azSchemeTag").textContent = shia ? "شیعه" : "اهل سنت";
+    azanLines(azTab, shia).forEach(function (l) {
+      h += '<li><span class="az-x">×' + f(l.x) + '</span><div class="az-body"><div class="ar" lang="ar" dir="rtl">' + l.ar + '</div><div class="fa">' + l.fa + "</div>" +
+        (l.tag ? '<span class="az-tag">' + l.tag + "</span>" : "") + "</div></li>";
+    });
+    $("azLines").innerHTML = h;
+    $("azTextNote").textContent = "متن بر اساس مذهبی که در صفحهٔ خانه انتخاب کرده‌ای نمایش داده می‌شود؛ بین فقه‌ها اندکی تفاوت هست.";
+    all("#azTabSeg button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.v === azTab); });
+    applyCfg(); drawAzan(); drawPlayer();
+  }
+  function playPreview(name) {
+    if (playing === name) { stopSound(); return; }
+    playSound(name, function (ok) { if (!ok) toast("فایل صدا پیدا نشد؛ آن را در پوشهٔ audio بگذار."); });
   }
 
   /* ================= سازنده ================= */
@@ -628,16 +736,41 @@
   var schedTimer = null;
   function reschedule() { clearTimeout(schedTimer); schedTimer = setTimeout(scheduleAll, 700); }
 
+  /* کانال‌های اعلان: در اندروید صدا به «کانال» وصل است و بعد از ساخت قابل تغییر نیست؛
+     برای همین هر صدا کانال جدا دارد. اگر صدای فایل را عوض کردی، شمارهٔ نسخه (_v1) را بالا ببر. */
+  var CH = {
+    azan:    { id: "azan_v1",    name: "اذان",            sound: "azan" },
+    soft:    { id: "soft_v1",    name: "یادآوری ملایم",   sound: "soft" },
+    "default": { id: "default_v1", name: "اعلان‌های نیاز", sound: "" }
+  };
+  function chFor(kind) {                       // kind: "main" = وقت نماز، "minor" = یادآوری/اقامه/طلوع
+    if (cfg.snd === "default") return CH["default"];
+    return kind === "main" ? (CH[cfg.snd] || CH.azan) : CH.soft;
+  }
+  function ensureChannels() {
+    var ln = LN(), chain = Promise.resolve();
+    if (ln.deleteChannel) chain = chain.then(function () { return ln.deleteChannel({ id: "prayer" }); }).catch(function () {});
+    [CH.azan, CH.soft, CH["default"]].forEach(function (c) {
+      chain = chain.then(function () {
+        var o = { id: c.id, name: c.name, description: "اعلان‌های نیاز", importance: 5, visibility: 1, vibration: true, lights: true };
+        if (c.sound) o.sound = c.sound;
+        return ln.createChannel(o);
+      }).catch(function () {});
+    });
+    return chain;
+  }
+
   function buildList() {
-    var list = [], now = Date.now(), pre = +cfg.pre || 0;
+    var list = [], now = Date.now(), pre = +cfg.pre || 0, iq = +cfg.iq || 0;
     for (var d = 0; d < 7; d++) {
-      var z = zoneNow(loc.tz, new Date(now + d * 86400000)), t = times(z, loc.lat, loc.lng);
+      var z = zoneNow(loc.tz, new Date(now + d * 86400000)), t = times(z, loc.lat, loc.lng), base = d * 40;
       P.forEach(function (p, i) {
         var at = absTime(z, t[p.k]);
-        list.push({ id: d * 20 + i + 1, at: at, title: "وقت نماز " + p.n, body: "حی علی الصلاة · " + hhmm(t[p.k]) + " · " + loc.label });
-        if (pre) list.push({ id: d * 20 + i + 11, at: at - pre * 60000, title: f(pre) + " دقیقه تا نماز " + p.n, body: "آمادهٔ نماز شو · " + hhmm(t[p.k]) });
+        list.push({ id: base + i + 1, at: at, kind: "main", title: "وقت نماز " + p.n, body: "حی علی الصلاة · " + hhmm(t[p.k]) + " · " + loc.label });
+        if (pre) list.push({ id: base + i + 11, at: at - pre * 60000, kind: "minor", title: f(pre) + " دقیقه تا نماز " + p.n, body: "آمادهٔ نماز شو · " + hhmm(t[p.k]) });
+        if (iq) list.push({ id: base + i + 21, at: at + iq * 60000, kind: "minor", title: "اقامهٔ نماز " + p.n, body: "قد قامت الصلاة · " + hhmm(t[p.k] + iq / 60) });
       });
-      if (cfg.sun === "on") list.push({ id: d * 20 + 6, at: absTime(z, t.sunrise), title: "طلوع آفتاب", body: "وقت نماز صبح به پایان رسید · " + hhmm(t.sunrise) });
+      if (cfg.sun === "on") list.push({ id: base + 6, at: absTime(z, t.sunrise), kind: "minor", title: "طلوع آفتاب", body: "وقت نماز صبح به پایان رسید · " + hhmm(t.sunrise) });
     }
     return list.filter(function (n) { return n.at > now + 3000; });
   }
@@ -657,10 +790,11 @@
       if (cfg.notif !== "on") return null;
       return ensurePerm().then(function (ok) {
         if (!ok) { toast("اجازهٔ اعلان داده نشد؛ از تنظیمات گوشی فعالش کن."); return null; }
-        return ln.createChannel({ id: "prayer", name: "اوقات نماز", description: "اعلان وقت نمازها", importance: 5, visibility: 1, vibration: true, lights: true })
-          .catch(function () {}).then(function () {
+        return ensureChannels().then(function () {
             var list = buildList().map(function (n) {
-              return { id: n.id, title: n.title, body: n.body, channelId: "prayer", schedule: { at: new Date(n.at), allowWhileIdle: true } };
+              var ch = chFor(n.kind), o = { id: n.id, title: n.title, body: n.body, channelId: ch.id, schedule: { at: new Date(n.at), allowWhileIdle: true } };
+              if (ch.sound) o.sound = ch.sound + ".wav";   // فقط برای اندروید قدیمی‌تر از ۸
+              return o;
             });
             return list.length ? ln.schedule({ notifications: list }) : null;
           });
@@ -689,14 +823,16 @@
     if (ln) {
       ensurePerm().then(function (ok) {
         if (!ok) { toast("اجازهٔ اعلان داده نشد."); return; }
-        ln.createChannel({ id: "prayer", name: "اوقات نماز", description: "اعلان وقت نمازها", importance: 5, visibility: 1, vibration: true }).catch(function () {}).then(function () {
-          return ln.schedule({ notifications: [{ id: 99999, title: "نیاز · اعلان آزمایشی", body: "اگر این را می‌بینی، اعلان‌ها درست کار می‌کنند.", channelId: "prayer", schedule: { at: new Date(Date.now() + 5000), allowWhileIdle: true } }] });
+        ensureChannels().then(function () {
+          var ch = chFor("main"), o = { id: 99999, title: "نیاز · اعلان آزمایشی", body: "اگر این را می‌بینی، اعلان‌ها درست کار می‌کنند.", channelId: ch.id, schedule: { at: new Date(Date.now() + 5000), allowWhileIdle: true } };
+          if (ch.sound) o.sound = ch.sound + ".wav";
+          return ln.schedule({ notifications: [o] });
         }).then(function () { toast("تا ۵ ثانیه دیگر اعلان می‌آید. می‌توانی برنامه را ببندی."); });
       });
     } else {
       toast("تا ۵ ثانیه دیگر…");
       setTimeout(function () {
-        beep(); buzz([200, 100, 200]); toast("اعلان آزمایشی ✓");
+        alertSound(); buzz([200, 100, 200]); toast("اعلان آزمایشی ✓");
         try { if (window.Notification && Notification.permission === "granted") new Notification("نیاز · اعلان آزمایشی"); } catch (e) {}
       }, 5000);
     }
@@ -708,7 +844,7 @@
       var d = C.z.h - C.t[p.k], key = dayKey(C.z) + p.k;
       if (d >= 0 && d < 0.05 && lastAlert !== key) {
         lastAlert = key; save("rk-alerted", key);
-        toast("وقت نماز " + p.n + " شد"); beep(); buzz([200, 100, 200]);
+        toast("وقت نماز " + p.n + " شد"); alertSound(); buzz([200, 100, 200]);
         try { if (window.Notification && Notification.permission === "granted") new Notification("وقت نماز " + p.n); } catch (e) {}
       }
     });
@@ -717,11 +853,12 @@
   /* ================= تنظیمات ================= */
   function applyCfg() {
     document.documentElement.style.setProperty("--arfs", cfg.fs + "px");
-    [["skySeg", "sky"], ["tapSeg", "tap"], ["tqSeg", "tq"], ["notifSeg", "notif"], ["preSeg", "pre"], ["sunSeg", "sun"], ["vibSeg", "vib"], ["asrSeg", "asr"]].forEach(function (x) {
+    [["skySeg", "sky"], ["tapSeg", "tap"], ["tqSeg", "tq"], ["notifSeg", "notif"], ["preSeg", "pre"], ["sunSeg", "sun"], ["vibSeg", "vib"], ["asrSeg", "asr"], ["sndSeg", "snd"], ["iqSeg", "iq"]].forEach(function (x) {
       all("#" + x[0] + " button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.v === String(cfg[x[1]])); });
     });
     $("methodSel").value = cfg.method;
     all(".field.img").forEach(function (i) { i.value = (cfg.imgs && cfg.imgs[i.dataset.p]) || ""; });
+    $("sndNote").textContent = NATIVE ? "صدای اعلان از فایل‌های پوشهٔ audio ساخته می‌شود؛ بعد از عوض‌کردن فایل، APK را دوباره بساز." : "این صدا فقط وقتی برنامه باز است پخش می‌شود؛ در نسخهٔ اندروید روی خود اعلان هم می‌نشیند.";
     $("notifNote").textContent = NATIVE ? "اعلان‌ها با آلارم سیستم برای ۷ روز آینده زمان‌بندی می‌شوند و با بسته بودن برنامه هم می‌آیند." : "در مرورگر فقط وقتی صفحه باز است اعلان می‌آید؛ برای اعلان پس‌زمینه برنامه را نصب کن.";
   }
   function stepper(box, obj, key, name, fmt, min, max, after) {
@@ -797,6 +934,12 @@
   seg("tapSeg", "tap"); seg("tqSeg", "tq"); seg("vibSeg", "vib");
   seg("notifSeg", "notif", function () { if (cfg.notif === "on") enableNotif(); else { scheduleAll(); } });
   seg("preSeg", "pre", reschedule); seg("sunSeg", "sun", reschedule);
+  seg("sndSeg", "snd", function () { reschedule(); if (cfg.snd === "default") stopSound(); else playSound(cfg.snd); });
+  seg("iqSeg", "iq", function () { reschedule(); drawAzan(); });
+  all("#azTabSeg button").forEach(function (b) { b.onclick = function () { azTab = b.dataset.v; renderAzan(); }; });
+  $("azPlayAzan").onclick = function () { playPreview("azan"); };
+  $("azPlaySoft").onclick = function () { playPreview("soft"); };
+  $("azStop").onclick = stopSound;
   seg("asrSeg", "asr", function () { renderHome(); reschedule(); });
   $("methodSel").onchange = function () { cfg.method = this.value; saveCfg(); renderHome(); reschedule(); };
   $("testNotif").onclick = testNotif;
@@ -811,7 +954,7 @@
     if (!$("pray").hidden || !$("taqib").hidden || !$("tasbih").hidden) setWake(true);
     if (NATIVE && cfg.notif === "on") reschedule();
   });
-  setInterval(function () { if (!$("home").hidden) tick(); else C = compute(); checkAlert(); }, 1000);
+  setInterval(function () { if (!$("home").hidden) tick(); else C = compute(); if (!$("azan").hidden) drawAzan(); checkAlert(); }, 1000);
 
   /* ================= شروع ================= */
   applyCfg();
