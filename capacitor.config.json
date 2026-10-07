@@ -1,0 +1,10 @@
+{
+  "appId": "com.mojtabameidani.niyaz",
+  "appName": "نیاز",
+  "webDir": "www",
+  "backgroundColor": "#050b1f",
+  "android": { "backgroundColor": "#050b1f" },
+  "plugins": {
+    "LocalNotifications": { "iconColor": "#F4C25B" }
+  }
+}

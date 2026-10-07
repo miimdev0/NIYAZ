@@ -1,0 +1,16 @@
+{
+  "name": "niyaz",
+  "version": "2.0.0",
+  "private": true,
+  "description": "نیاز · همراه هوشمند نماز — Mojtaba Meidani",
+  "author": "Mojtaba Meidani",
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/cli": "^6.2.0",
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/local-notifications": "^6.1.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5"
+  }
+}
