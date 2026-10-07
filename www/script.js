@@ -20,6 +20,11 @@
     function p(x) { return (x < 10 ? "0" : "") + x; }
     return f(p(h) + ":" + p(m) + ":" + p(s));
   }
+  function minutesText(m) {
+    m = Math.max(0, Math.round(m));
+    var h = Math.floor(m / 60), mm = m % 60;
+    return h && mm ? f(h) + " ساعت و " + f(mm) + " دقیقه" : h ? f(h) + " ساعت" : f(mm) + " دقیقه";
+  }
   function load(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   function toast(t) {
@@ -41,6 +46,16 @@
      آدرس تصویر را اینجا یا از «تنظیمات» وارد کن؛ فایل محلی هم می‌شود: "img/ruku.jpg" */
   var DEFAULT_IMAGES = { stand: "", ruku: "", sajdah: "", sit: "" };
   var POSE_NAME = { stand: "قیام", ruku: "رکوع", sajdah: "سجده", sit: "نشستن" };
+
+  /* ================= اطلاعات سازنده =================
+     هر چیزی را که خواستی اینجا عوض کن؛ لینک‌های خالی نمایش داده نمی‌شوند. */
+  var CREATOR = {
+    name: "مجتبی میدانی",
+    role: "سازنده و طراح نیاز",
+    bio: "نیاز را ساختم تا نماز با حضور قلب بیشتر و حواس‌پرتی کمتر خوانده شود.",
+    version: "۲٫۰",
+    links: { "تلگرام": "", "اینستاگرام": "", "ایمیل": "", "وب‌سایت": "" }
+  };
 
   /* ================= شهرها ================= */
   var CITIES = [
@@ -313,7 +328,7 @@
     if (C.cur) {
       secs = C.left * 3600; prog = 1 - C.left / C.span;
       $("nowText").textContent = "وقت نماز " + pr(C.cur).n;
-      $("subText").textContent = "تا پایان وقت";
+      $("subText").textContent = C.cur === "isha" ? "تا اذان صبح" : "تا پایان وقت";
     } else {
       secs = C.wait * 3600; prog = 1 - C.wait / C.span;
       $("nowText").textContent = "نماز بعدی: " + pr(C.next).n;
@@ -324,6 +339,47 @@
     $("rprog").style.strokeDashoffset = CIRC * (1 - Math.max(0, Math.min(1, prog)));
     $("startBtn").textContent = "شروع نماز " + pr(C.chosen).n;
     drawArc();
+    renderTL();
+  }
+
+
+  /* ================= چقدر وقت داری؟ ================= */
+  var PRAY_MIN = { 2: 5, 3: 7, 4: 9 };   // مدت تقریبی نماز به دقیقه
+  function renderTL() {
+    var t = C.t, z = C.z, card = $("tlCard"), done = log[dayKey(z)] || [];
+    var cls = "ok", badge, big, a = "", b = "", msg, frac;
+    if (C.cur) {
+      var p = pr(C.cur), dur = PRAY_MIN[p.r] || 8, nh = z.h < t.fajr ? z.h + 24 : z.h;
+      var rem = C.left, span = C.span, endLbl = "پایان وقت", late = false;
+      var mid = (t.sunset + t.fajr + 24) / 2;
+      if (C.cur === "isha" && scheme === "shia") {
+        if (nh < mid) { rem = mid - nh; span = mid - t.isha; endLbl = "نیمه‌شب شرعی"; }
+        else late = true;
+      }
+      var remMin = rem * 60, elapsedMin = (span - rem) * 60;
+      frac = Math.max(0, Math.min(1, rem / span));
+      big = minutesText(remMin) + " باقی مانده";
+      a = "آخرین لحظهٔ شروع: " + hhmm(z.h + rem - dur / 60);
+      b = endLbl + ": " + hhmm(z.h + rem);
+      if (done.indexOf(C.cur) >= 0) { cls = "done"; badge = "خوانده شد ✓"; msg = "نماز " + p.n + " را خوانده‌ای؛ بقیهٔ وقت برای ذکر و دعاست."; }
+      else if (late) { cls = "danger"; badge = "بعد از نیمه‌شب"; msg = "از نیمه‌شب شرعی گذشته؛ هرچه زودتر نماز عشا را بخوان."; }
+      else if (remMin <= dur + 5) { cls = "danger"; badge = "وقت تنگ"; msg = "وقت تنگ است؛ همین حالا شروع کن! نماز " + p.n + " حدود " + f(dur) + " دقیقه طول می‌کشد."; }
+      else if (remMin <= 30) { cls = "danger"; badge = "وقت کم"; msg = "کمتر از نیم ساعت مانده؛ وضو بگیر و شروع کن."; }
+      else if (remMin <= 60) { cls = "warn"; badge = "وقت کم"; msg = "حدود یک ساعت یا کمتر مانده؛ کارهایت را جمع کن."; }
+      else if (elapsedMin <= 20) { badge = "اول وقت"; msg = "اول وقت است؛ بهترین فرصت برای نماز " + p.n + "."; }
+      else { badge = "وقت فراخ"; msg = "وقت فراخ است؛ با آرامش بخوان. نماز " + p.n + " حدود " + f(dur) + " دقیقه طول می‌کشد."; }
+    } else {
+      var np = pr(C.next);
+      frac = Math.max(0, Math.min(1, 1 - C.wait / C.span));
+      big = "نماز " + np.n + " تا " + minutesText(C.wait * 60) + " دیگر";
+      a = "شروع: " + hhmm(t[C.next]); b = "";
+      badge = "بین دو نماز";
+      msg = done.indexOf("fajr") < 0 && z.h > t.sunrise ? "نماز صبح امروز ثبت نشده؛ اگر نخوانده‌ای، قضایش را بخوان." : "آماده شو؛ وضو بگیر و منتظر وقت بمان.";
+    }
+    card.className = "glass card tl " + (cls === "ok" ? "" : cls);
+    $("tlBadge").textContent = badge; $("tlBig").textContent = big;
+    $("tlFill").style.width = (frac * 100).toFixed(1) + "%";
+    $("tlA").textContent = a; $("tlB").textContent = b; $("tlMsg").textContent = msg;
   }
 
   function drawArc() {
@@ -339,12 +395,12 @@
       var hh = h < t.sunrise ? h + 24 : h; u = (hh - t.sunset) / (t.sunrise + 24 - t.sunset); p = pt(Math.max(0, Math.min(1, u)));
       s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="14" fill="rgba(200,215,255,.22)"/><text x="' + p[0] + '" y="' + (p[1] + 6) + '" style="font-size:18px;fill:#e8eefc">☾</text>';
     }
-    s += '<text x="20" y="94">طلوع ' + hhmm(t.sunrise) + '</text><text x="300" y="94">غروب ' + hhmm(t.sunset) + "</text>";
+    s += '<text x="6" y="94" style="text-anchor:start">طلوع ' + hhmm(t.sunrise) + '</text><text x="314" y="94" style="text-anchor:end">غروب ' + hhmm(t.sunset) + "</text>";
     $("arc").innerHTML = s;
   }
 
   /* ================= قبله ================= */
-  var rose = $("rose"), lastAlign = false;
+  var rose = $("rose"), lastAlign = false, roseAngle = 0, qRaf = 0;
   function drawQibla() {
     var b = qiblaBearing(loc.lat, loc.lng);
     $("qDeg").textContent = f(Math.round(b)) + "° " + compassWord(b);
@@ -352,11 +408,13 @@
     $("kaaba").style.transform = "rotate(" + b + "deg)";
     var comp = $("compass");
     if (heading == null) {
-      rose.style.transform = "rotate(0deg)"; $("cdeg").textContent = ""; $("qState").textContent = "قطب‌نما غیرفعال"; comp.classList.remove("aligned");
+      roseAngle = 0; rose.style.transform = "rotate(0deg)"; $("cdeg").textContent = ""; $("qState").textContent = "قطب‌نما غیرفعال"; comp.classList.remove("aligned");
       $("compassBtn").hidden = false; return;
     }
     $("compassBtn").hidden = true;
-    rose.style.transform = "rotate(" + (-heading) + "deg)";
+    var tgt = -heading;
+    roseAngle += fix(tgt - roseAngle + 180, 360) - 180;   // کوتاه‌ترین مسیر، بدون چرخش کامل
+    rose.style.transform = "rotate(" + roseAngle + "deg)";
     $("cdeg").textContent = f(Math.round(heading)) + "°";
     var diff = fix(b - heading + 180, 360) - 180, ok = Math.abs(diff) < 4;
     comp.classList.toggle("aligned", ok);
@@ -370,7 +428,7 @@
     else if (e.alpha != null && (e.absolute || e.type === "deviceorientationabsolute")) h = 360 - e.alpha;
     if (h == null) return;
     heading = heading == null ? h : fix(heading + 0.3 * (fix(h - heading + 180, 360) - 180), 360);
-    if (!$("qibla").hidden) drawQibla();
+    if (!$("qibla").hidden && !qRaf) qRaf = requestAnimationFrame(function () { qRaf = 0; drawQibla(); });
   }
   var compassOn = false;
   function startCompass() {
@@ -408,13 +466,13 @@
     save("rk-tb", tb);
   }
   function tbTap() {
-    tb.c++; tb.tot++; buzz(8);
+    tb.c++; tb.tot++; save("rk-tb-all", load("rk-tb-all", 0) + 1); buzz(8);
     if (tb.t && tb.c >= tb.t) { buzz([70, 40, 70]); toast("به " + f(tb.t) + " رسیدی"); tb.c = 0; tb.rounds++; }
     drawTb(true);
   }
 
   /* ================= ناوبری ================= */
-  var SCREENS = ["home", "qibla", "tasbih", "settings", "loc", "pray", "taqib", "end"];
+  var SCREENS = ["home", "qibla", "tasbih", "settings", "creator", "loc", "pray", "taqib", "end"];
   function show(id) {
     SCREENS.forEach(function (s) { $(s).hidden = s !== id; });
     var tab = $(id).dataset.tab;
@@ -438,7 +496,26 @@
     if (tab === "qibla") { drawQibla(); var D = window.DeviceOrientationEvent; if (!(D && typeof D.requestPermission === "function")) startCompass(); }
     if (tab === "tasbih") drawTb();
     if (tab === "settings") { applyCfg(); buildAdj(); renderStats(); }
+    if (tab === "creator") renderCreator();
   }
+
+  /* ================= سازنده ================= */
+  function renderCreator() {
+    $("cname").textContent = CREATOR.name; $("crole").textContent = CREATOR.role; $("cbio").textContent = CREATOR.bio;
+    $("cver").textContent = "نسخهٔ " + CREATOR.version;
+    var h = "";
+    Object.keys(CREATOR.links).forEach(function (k) {
+      var v = CREATOR.links[k]; if (!v) return;
+      if (k === "ایمیل" && v.indexOf("mailto:") !== 0) v = "mailto:" + v;
+      h += '<a class="chip" target="_blank" rel="noopener" href="' + v + '">' + k + "</a>";
+    });
+    $("clinks").innerHTML = h;
+    var total = 0; Object.keys(log).forEach(function (d) { total += log[d].length; });
+    $("cs1").textContent = f(total); $("cs2").textContent = f(streak());
+    var tbAll = load("rk-tb-all", 0); $("cs3").textContent = f(tbAll);
+  }
+  var taps = 0;
+  $("clogo").onclick = function () { taps++; if (taps >= 5) { taps = 0; confetti(); buzz([40, 30, 40]); toast("ساخته‌شده با عشق توسط " + CREATOR.name); } };
 
   /* ================= نماز ================= */
   var steps = [];
