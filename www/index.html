@@ -109,6 +109,57 @@
     <p class="note">هر جای صفحه را لمس کن.</p>
   </section>
 
+  <!-- اذان و اقامه -->
+  <section id="azan" class="screen" hidden data-tab="azan">
+    <header class="top glass pill"><b>اذان و اقامه</b><span class="muted" id="azSchemeTag"></span></header>
+
+    <div class="glass card az-next">
+      <div class="cardhead"><b id="azNextName"></b><span class="tlbadge" id="azNextBadge"></span></div>
+      <div class="az-times">
+        <div><span class="muted">اذان</span><b id="azNextAdhan">--:--</b></div>
+        <div><span class="muted">اقامه</span><b id="azNextIqama">—</b></div>
+        <div><span class="muted">مانده</span><b id="azNextLeft">--</b></div>
+      </div>
+    </div>
+
+    <div class="glass card az-player">
+      <div class="cardhead"><b>شنیدن صدا</b><span class="muted" id="azPlayMsg"></span></div>
+      <div class="row">
+        <button type="button" id="azPlayAzan" class="glass">▶ اذان</button>
+        <button type="button" id="azPlaySoft" class="glass">▶ صدای ملایم</button>
+        <button type="button" id="azStop" class="glass">■ توقف</button>
+      </div>
+    </div>
+
+    <div class="seg glass" id="azTabSeg" role="group" aria-label="متن">
+      <button type="button" data-v="adhan">متن اذان</button>
+      <button type="button" data-v="iqama">متن اقامه</button>
+    </div>
+    <div class="glass card az-text">
+      <ul id="azLines" class="az-lines"></ul>
+      <p class="note" id="azTextNote"></p>
+    </div>
+
+    <div class="glass card group">
+      <h3>صدای اعلان</h3>
+      <label>صدای اعلان وقت نماز</label>
+      <div class="seg" id="sndSeg">
+        <button type="button" data-v="azan">اذان</button>
+        <button type="button" data-v="soft">صدای ملایم</button>
+        <button type="button" data-v="default">پیش‌فرض گوشی</button>
+      </div>
+      <label>اقامه بعد از اذان</label>
+      <div class="seg" id="iqSeg">
+        <button type="button" data-v="0">ندارد</button>
+        <button type="button" data-v="5">۵ دقیقه</button>
+        <button type="button" data-v="10">۱۰ دقیقه</button>
+        <button type="button" data-v="15">۱۵ دقیقه</button>
+        <button type="button" data-v="20">۲۰ دقیقه</button>
+      </div>
+      <p class="note" id="sndNote"></p>
+    </div>
+  </section>
+
   <!-- تنظیمات -->
   <section id="settings" class="screen" hidden data-tab="settings">
     <header class="top glass pill"><b>تنظیمات</b></header>
@@ -268,6 +319,7 @@
 <nav id="tabs" class="glass" aria-label="بخش‌ها">
   <button type="button" data-go="home" aria-label="خانه"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>خانه</span></button>
   <button type="button" data-go="qibla" aria-label="قبله"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span>قبله</span></button>
+  <button type="button" data-go="azan" aria-label="اذان و اقامه"><svg viewBox="0 0 24 24"><path d="M4 20V10l4-3 4 3v10M12 20V8l4-5 4 5v12M2 20h20"/></svg><span>اذان</span></button>
   <button type="button" data-go="tasbih" aria-label="تسبیح"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="18" cy="9.5" r="2"/><circle cx="16" cy="17" r="2"/><circle cx="8" cy="17" r="2"/><circle cx="6" cy="9.5" r="2"/></svg><span>تسبیح</span></button>
   <button type="button" data-go="settings" aria-label="تنظیمات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>تنظیمات</span></button>
   <button type="button" data-go="creator" aria-label="سازنده"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span>سازنده</span></button>
