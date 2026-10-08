@@ -51,6 +51,37 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
+      - name: Verify APK contents (native classes, sounds, fonts, manifest)
+        run: |
+          set -u
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          ls -l "$APK"
+          fail=0
+          check() { if unzip -l "$APK" | grep -q -- "$1"; then echo "ok    $1"; else echo "MISSING  $1"; fail=1; fi; }
+          check "res/raw/azan.mp3"
+          check "res/raw/soft.mp3"
+          check "assets/public/index.html"
+          check "assets/public/script.js"
+          check "assets/public/cal.js"
+          check "assets/public/content.js"
+          check "assets/public/nat.js"
+          check "assets/public/audio/azan.mp3"
+          check "assets/public/fonts/Doran.ttf"
+
+          rm -rf /tmp/apkx && mkdir -p /tmp/apkx && (cd /tmp/apkx && unzip -qo "$GITHUB_WORKSPACE/$APK")
+          for s in AzanService AzanActivity NiyazWidgetProvider AlarmModule BootReceiver AlarmScheduler Notifier WidgetUpdate; do
+            if grep -a -q "$s" /tmp/apkx/classes*.dex; then echo "dex ok    $s"; else echo "dex MISSING  $s"; fail=1; fi
+          done
+          for s in android.permission.USE_EXACT_ALARM android.permission.POST_NOTIFICATIONS android.appwidget.action.APPWIDGET_UPDATE android.permission.FOREGROUND_SERVICE_SPECIAL_USE; do
+            if strings -el /tmp/apkx/AndroidManifest.xml 2>/dev/null | grep -q "$s" || strings -a /tmp/apkx/AndroidManifest.xml 2>/dev/null | grep -q "$s"; then
+              echo "manifest ok    $s"
+            else
+              echo "manifest MISSING  $s"; fail=1
+            fi
+          done
+          if [ "$fail" != "0" ]; then echo "::error::محتوای APK ناقص است"; exit 1; fi
+          echo "APK verified ✔  ($(du -h "$APK" | cut -f1))"
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
