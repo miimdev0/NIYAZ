@@ -39,17 +39,19 @@ button,input,select{font:inherit;color:inherit}
 [hidden]{display:none!important}
 button:focus-visible,.field:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 body.noanim *{animation:none!important;transition:none!important}
+/* در حالت «انیمیشن خاموش» و برای کاربرانی که کاهش حرکت می‌خواهند، شیشه‌ها هم ارزان می‌شوند */
+body.noanim .glass,body.noanim #tabs,body.noanim #sheet,body.noanim .plist li button,body.noanim #datebar{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:var(--glass2)}
 
 /* ---------- آسمان و پس‌زمینهٔ زنده ---------- */
-#sky{position:fixed;inset:0;z-index:-1;background:linear-gradient(175deg,var(--sky1),var(--sky2));transition:background 1.2s}
-.stars{position:absolute;inset:0;opacity:0;transition:opacity 1.2s;
+#sky{position:fixed;inset:0;z-index:-1;contain:paint;background:linear-gradient(175deg,var(--sky1),var(--sky2));transition:background 1.2s}
+.stars{will-change:opacity;position:absolute;inset:0;opacity:0;transition:opacity 1.2s;
   background-image:radial-gradient(1.5px 1.5px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 32% 8%,#fff,transparent),radial-gradient(1.5px 1.5px at 58% 22%,#fff,transparent),radial-gradient(1px 1px at 78% 12%,#fff,transparent),radial-gradient(1.5px 1.5px at 90% 30%,#fff,transparent),radial-gradient(1px 1px at 20% 40%,#fff,transparent),radial-gradient(1px 1px at 66% 46%,#fff,transparent),radial-gradient(1.5px 1.5px at 42% 36%,#fff,transparent),radial-gradient(1px 1px at 8% 62%,#fff,transparent),radial-gradient(1px 1px at 84% 66%,#fff,transparent),radial-gradient(1px 1px at 48% 74%,#fff,transparent),radial-gradient(1.5px 1.5px at 26% 88%,#fff,transparent);animation:twinkle 4.5s ease-in-out infinite}
 .stars.s2{background-position:37px 61px;animation-delay:2.2s;background-size:140% 140%}
 body[data-phase="night"] .stars,body[data-phase="dusk"] .stars{opacity:.95}
 body[data-phase="dawn"] .stars,body[data-phase="sunset"] .stars{opacity:.35}
 @keyframes twinkle{50%{opacity:.35}}
 .pattern{position:absolute;inset:0;opacity:.06;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 90 90'%3E%3Cg fill='none' stroke='%23fff' stroke-width='1.1'%3E%3Cpath d='M45 6l9 15 17-4-4 17 15 9-15 9 4 17-17-4-9 15-9-15-17 4 4-17-15-9 15-9-4-17 17 4z'/%3E%3Ccircle cx='45' cy='45' r='10'/%3E%3C/g%3E%3C/svg%3E");background-size:90px 90px}
-.orb{position:absolute;left:50%;top:34%;width:120vmax;height:120vmax;transform:translate(-50%,-50%);border-radius:50%;opacity:.24;background:radial-gradient(closest-side,var(--orb),transparent 68%);transition:opacity .9s,background .9s;animation:float 26s ease-in-out infinite}
+.orb{will-change:transform;position:absolute;left:50%;top:34%;width:120vmax;height:120vmax;transform:translate(-50%,-50%);border-radius:50%;opacity:.24;background:radial-gradient(closest-side,var(--orb),transparent 68%);transition:opacity .9s,background .9s;animation:float 26s ease-in-out infinite}
 body[data-light="1"] .orb{opacity:.42}
 @keyframes float{50%{transform:translate(-46%,-54%) scale(1.06)}}
 .aura{position:absolute;inset:0;opacity:0;transition:opacity .8s;background:radial-gradient(120vmax 70vmax at 50% 90%,var(--aura),transparent 60%)}
@@ -57,7 +59,7 @@ body.praying .aura{opacity:.3;animation:breathe 7s ease-in-out infinite}
 @keyframes breathe{50%{opacity:.18}}
 /* ستون‌های نور شب */
 .beams{position:absolute;inset:0;overflow:hidden;opacity:.55}
-.beams i{position:absolute;top:-30%;width:26vmax;height:150vmax;background:linear-gradient(180deg,transparent,rgba(255,255,255,.07),transparent);transform:rotate(14deg);animation:beam 14s ease-in-out infinite}
+.beams i{will-change:transform,opacity;position:absolute;top:-30%;width:26vmax;height:150vmax;background:linear-gradient(180deg,transparent,rgba(255,255,255,.07),transparent);transform:rotate(14deg);animation:beam 14s ease-in-out infinite}
 .beams i:nth-child(2){left:22%;animation-delay:3s}
 .beams i:nth-child(3){left:52%;animation-delay:6s}
 .beams i:nth-child(4){left:76%;animation-delay:9s}
@@ -66,11 +68,11 @@ body.praying .aura{opacity:.3;animation:breathe 7s ease-in-out infinite}
 /* ---------- ساختار ---------- */
 #app{overflow-x:clip;width:100%;max-width:480px;padding:10px 15px calc(100px + env(safe-area-inset-bottom,0px))}
 body.praying #app{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
-body.adhan-open #app{filter:blur(2px) saturate(.7);pointer-events:none}
+body.adhan-open #app{opacity:.22;pointer-events:none}
 .screen{display:flex;flex-direction:column;gap:14px;animation:enter .35s ease-out}
 .screen.full{min-height:calc(100dvh - 40px)}
 @keyframes enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.glass{background:var(--glass);border:1px solid var(--line);-webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);box-shadow:var(--shadow)}
+.glass{background:var(--glass);border:1px solid var(--line);-webkit-backdrop-filter:blur(11px) saturate(140%);backdrop-filter:blur(11px) saturate(140%);box-shadow:var(--shadow)}
 .card{border-radius:24px;padding:16px}
 .muted{color:var(--muted);font-size:13px}
 .note{font-size:12px;color:var(--muted);text-align:center;margin:0;line-height:1.9}
@@ -139,7 +141,7 @@ body.praying #datebar,body.adhan-open #datebar{display:none}
 .mini-times div.on b,.mini-times div.on span{color:var(--gold);font-weight:700}
 .mini-times div.past{opacity:.55}
 .plist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.plist li button{width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--glass);border:1px solid var(--line);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-radius:20px;padding:14px 16px;font-size:16px;cursor:pointer;text-align:start}
+.plist li button{width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--glass2);border:1px solid var(--line);border-radius:20px;padding:14px 16px;font-size:16px;cursor:pointer;text-align:start}
 .plist li.cur button{border-color:var(--gold);box-shadow:0 0 26px color-mix(in srgb,var(--gold) 30%,transparent)}
 .plist li.past button{opacity:.62}
 .plist .t{direction:ltr;font-variant-numeric:tabular-nums;color:var(--gold);font-weight:700}
@@ -370,7 +372,8 @@ body.praying #tabs,body.sub #tabs,body.adhan-open #tabs{display:none}
 #fx{position:fixed;inset:0;pointer-events:none;z-index:15;width:100%;height:100%}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(104px + env(safe-area-inset-bottom,0px));max-width:calc(100% - 32px);background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1c1400;padding:12px 20px;border-radius:999px;font-weight:700;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:30;text-align:center}
 
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}
+.glass,#tabs,#sheet,#datebar{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:var(--glass2)}}
 @media (max-width:360px){
   .rcount{font-size:32px}
   .db-j{font-size:14px}

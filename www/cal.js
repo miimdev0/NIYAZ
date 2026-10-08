@@ -22,12 +22,24 @@ NZ.cal = (function () {
     return { y: 100 * b + d - 4800 + Math.floor(m / 10), m: m + 3 - 12 * Math.floor(m / 10), d: e - Math.floor((153 * m + 2) / 5) + 1 };
   }
   function jdnToDate(jdn) { return new Date(Date.UTC(1970, 0, 1) + (jdn - 2440588) * 86400000); }
+  /* سازندهٔ Intl گران است؛ برای هر منطقهٔ زمانی یک‌بار ساخته و نگه داشته می‌شود */
+  var DTFC = {};
+  function dtfDay(tz) {
+    var f = DTFC[tz];
+    if (!f) {
+      try { f = new Intl.DateTimeFormat("en-US", { timeZone: tz, year: "numeric", month: "numeric", day: "numeric", hourCycle: "h23" }); }
+      catch (e) { f = null; }
+      DTFC[tz] = f || false;
+    }
+    return f || null;
+  }
   function jdnFromDate(date, tz) {
     if (!tz) return jdnFromGreg(date.getFullYear(), date.getMonth() + 1, date.getDate());
     try {
+      var f = dtfDay(tz);
+      if (!f) return jdnFromGreg(date.getFullYear(), date.getMonth() + 1, date.getDate());
       var o = {};
-      new Intl.DateTimeFormat("en-US", { timeZone: tz, year: "numeric", month: "numeric", day: "numeric", hourCycle: "h23" })
-        .formatToParts(date).forEach(function (p) { o[p.type] = p.value; });
+      f.formatToParts(date).forEach(function (p) { o[p.type] = p.value; });
       return jdnFromGreg(+o.year, +o.month, +o.day);
     } catch (e) { return jdnFromGreg(date.getFullYear(), date.getMonth() + 1, date.getDate()); }
   }

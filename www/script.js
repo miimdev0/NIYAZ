@@ -7,6 +7,9 @@
   var FA = "۰۱۲۳۴۵۶۷۸۹";
   function f(n) { return String(n).replace(/\d/g, function (d) { return FA[d]; }); }
   function $(id) { return document.getElementById(id); }
+  /* فقط وقتی مقدار عوض شده در DOM بنویس (سرعت و مصرف باتری) */
+  function setT(el, txt) { if (el && el.textContent !== txt) el.textContent = txt; }
+  function setW(el, w) { if (el && el.style.width !== w) el.style.width = w; }
   function all(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
   function fix(a, b) { return a - b * Math.floor(a / b); }
   var rad = Math.PI / 180;
@@ -202,11 +205,20 @@
   function buzz(p) { if (cfg.vib !== "on") return; try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { } }
 
   /* ================= محاسبهٔ اوقات ================= */
+  var _dtfCache = {};
+  function dtfFor(tz) {
+    var key = tz || "local", f = _dtfCache[key];
+    if (f) return f;
+    var opt = { hourCycle: "h23", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" };
+    try { opt.timeZone = key; f = new Intl.DateTimeFormat("en-US", opt); }
+    catch (e) { delete opt.timeZone; f = new Intl.DateTimeFormat("en-US", opt); }
+    _dtfCache[key] = f;
+    return f;
+  }
   function zoneNow(tz, date) {
     var o = {};
     try {
-      new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric" })
-        .formatToParts(date).forEach(function (p) { o[p.type] = +p.value; });
+      dtfFor(tz).formatToParts(date).forEach(function (p) { o[p.type] = +p.value; });
     } catch (e) { o = { year: date.getFullYear(), month: date.getMonth() + 1, day: date.getDate(), hour: date.getHours(), minute: date.getMinutes(), second: date.getSeconds() }; }
     var asUtc = Date.UTC(o.year, o.month - 1, o.day, o.hour % 24, o.minute, o.second);
     return {
@@ -283,7 +295,7 @@
     var end = { fajr: t.sunrise, zuhr: t.asr, asr: t.maghrib, maghrib: t.isha, isha: t.fajr + 24 };
     var n = z.h < t.fajr ? z.h + 24 : z.h, cur = null, i;
     for (i = 0; i < order.length; i++) if (n >= t[order[i]] && n < end[order[i]]) cur = order[i];
-    var res = { z: z, t: t, cur: cur };
+    var res = { z: z, t: t, cur: cur, at: now.getTime() };
     if (cur) { res.left = end[cur] - n; res.span = end[cur] - t[cur]; }
     else {
       var nx = "zuhr";
@@ -303,8 +315,11 @@
     if (h < t.maghrib) return "sunset";
     return "dusk";
   }
+  var lastPhase = "";
   function setPhase() {
     var p = cfg.sky === "night" ? "night" : cfg.sky === "day" ? "noon" : phaseOf(C);
+    if (p === lastPhase) return;
+    lastPhase = p;
     document.body.dataset.phase = p;
   }
   function dayKey(z) { return z.y + "-" + z.m + "-" + z.d; }
@@ -328,14 +343,14 @@
   var lastClock = "";
   function tickDateBar() {
     if (!C) return;
-    var t = C.t, dpray;
-    if (C.cur) dpray = "تا پایان وقت " + PN[C.cur] + " · " + hms(C.left * 3600);
-    else dpray = "تا اذان " + PN[C.next] + " · " + hms(C.wait * 3600);
-    $("dbX").textContent = dpray;
+    var t = C.t, dpray, d = C.at ? (Date.now() - C.at) / 3600000 : 0;
+    if (C.cur) dpray = "تا پایان وقت " + PN[C.cur] + " · " + hms(Math.max(0, C.left - d) * 3600);
+    else dpray = "تا اذان " + PN[C.next] + " · " + hms(Math.max(0, C.wait - d) * 3600);
+    setT($("dbX"), dpray);
     var z = zoneNow(loc.tz, new Date());
     var secs = Math.floor((z.h * 3600) % 60);
     var c = hhmm(z.h) + ":" + f(("0" + secs).slice(-2));
-    if (c !== lastClock) { lastClock = c; $("dbClock").textContent = c; }
+    if (c !== lastClock) { lastClock = c; setT($("dbClock"), c); }
   }
 
   /* ================= خانه ================= */
@@ -387,6 +402,7 @@
   }
 
   var CIRC = 2 * Math.PI * 90;
+  var lastRing = "", lastTickMin = -1;
   function tick(skipCompute) {
     if (!skipCompute) {
       C = compute();
@@ -397,24 +413,26 @@
     var z = C.z, t = C.t, secs, prog;
     if (C.cur) {
       secs = C.left * 3600; prog = 1 - C.left / C.span;
-      $("nowText").textContent = "وقت نماز " + pr(C.cur).n;
-      $("subText").textContent = C.cur === "isha" ? "تا اذان صبح" : "تا پایان وقت";
+      setT($("nowText"), "وقت نماز " + pr(C.cur).n);
+      setT($("subText"), C.cur === "isha" ? "تا اذان صبح" : "تا پایان وقت");
     } else {
       secs = C.wait * 3600; prog = 1 - C.wait / C.span;
-      $("nowText").textContent = "نماز بعدی: " + pr(C.next).n;
-      $("subText").textContent = "ساعت " + hhmm(t[C.next]);
+      setT($("nowText"), "نماز بعدی: " + pr(C.next).n);
+      setT($("subText"), "ساعت " + hhmm(t[C.next]));
     }
-    $("count").textContent = hms(secs);
-    if ($("clock")) $("clock").textContent = hhmm(z.h);
-    $("rprog").style.strokeDashoffset = CIRC * (1 - Math.max(0, Math.min(1, prog)));
-    $("startBtn").textContent = "شروع نماز " + pr(C.chosen).n;
+    setT($("count"), hms(secs));
+    setT($("clock"), hhmm(z.h));
+    var off = (CIRC * (1 - Math.max(0, Math.min(1, prog)))).toFixed(1);
+    if (off !== lastRing) { lastRing = off; $("rprog").style.strokeDashoffset = off; }
+    setT($("startBtn"), "شروع نماز " + pr(C.chosen).n);
     tickDateBar();
-    drawArc();
+    var mk = Math.floor(C.z.h * 60);              /* تغییر دقیقه: تازه‌سازی سنگین */
+    if (mk !== lastTickMin) { lastTickMin = mk; drawArc(); renderMiniTimes(); }
     renderTL();
-    renderMiniTimes();
   }
 
   /* ردیف اوقات کوچک زیر حلقه */
+  var lastMiniSig = "";
   function renderMiniTimes() {
     var t = C.t, h = "";
     P.forEach(function (p) {
@@ -422,7 +440,7 @@
       h += '<div class="' + cls + '"><span>' + p.n + "</span><b>" + hhmm(t[p.k]) + "</b></div>";
     });
     h += '<div class="' + (C.z.h > C.t.sunrise && C.z.h < C.t.sunset ? "on" : "") + '"><span>طلوع</span><b>' + hhmm(t.sunrise) + "</b></div>";
-    $("miniTimes").innerHTML = h;
+    if (h !== lastMiniSig) { lastMiniSig = h; $("miniTimes").innerHTML = h; }
   }
 
   /* ================= چقدر وقت داری؟ ================= */
@@ -458,14 +476,19 @@
       badge = "بین دو نماز";
       msg = done.indexOf("fajr") < 0 && z.h > t.sunrise ? "نماز صبح امروز ثبت نشده؛ اگر نخوانده‌ای، قضایش را بخوان." : "آماده شو؛ وضو بگیر و منتظر وقت بمان.";
     }
-    card.className = "glass card tl " + (cls === "ok" ? "" : cls);
-    $("tlBadge").textContent = badge; $("tlBig").textContent = big;
-    $("tlFill").style.width = (frac * 100).toFixed(1) + "%";
-    $("tlA").textContent = a; $("tlB").textContent = b; $("tlMsg").textContent = msg;
+    var cn = "glass card tl " + (cls === "ok" ? "" : cls);
+    if (card.className !== cn) card.className = cn;
+    setT($("tlBadge"), badge); setT($("tlBig"), big);
+    setW($("tlFill"), (frac * 100).toFixed(1) + "%");
+    setT($("tlA"), a); setT($("tlB"), b); setT($("tlMsg"), msg);
   }
 
+  var lastArcKey = "";
   function drawArc() {
     var t = C.t, h = C.z.h, W = 320;
+    var arcKey = Math.floor(h * 60) + "|" + Math.round(t.sunrise * 60) + "|" + Math.round(t.sunset * 60);
+    if (arcKey === lastArcKey) return;
+    lastArcKey = arcKey;
     function pt(u) { var a = 1 - u; return [a * a * 20 + 2 * a * u * 160 + u * u * 300, a * a * 84 + 2 * a * u * -56 + u * u * 84]; }
     var s = '<path d="M20 84 Q160 -56 300 84" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="2" stroke-dasharray="3 5"/>' +
       '<line x1="8" x2="312" y1="84" y2="84" stroke="rgba(255,255,255,.25)"/>';
@@ -622,10 +645,10 @@
     nx = rec || nextAdhan(); if (!nx) return;
     if (rec) { name = "اقامهٔ نماز " + nx.p.n; badge = "تا اقامه"; left = (nx.at + iq * 60000 - now) / 1000; }
     else { name = "اذان " + nx.p.n; badge = "اذان بعدی"; left = (nx.at - now) / 1000; }
-    $("azNextName").textContent = name; $("azNextBadge").textContent = badge;
-    $("azNextAdhan").textContent = hhmm(nx.h);
-    $("azNextIqama").textContent = iq ? hhmm(nx.h + iq / 60) : "—";
-    $("azNextLeft").textContent = hms(left);
+    setT($("azNextName"), name); setT($("azNextBadge"), badge);
+    setT($("azNextAdhan"), hhmm(nx.h));
+    setT($("azNextIqama"), iq ? hhmm(nx.h + iq / 60) : "—");
+    setT($("azNextLeft"), hms(left));
   }
   function drawPlayer() {
     var a = $("azPlayAzan"), b = $("azPlaySoft"); if (!a) return;
@@ -685,9 +708,9 @@
   }
   function updateAdhanClock() {
     var z = zoneNow(loc.tz, new Date());
-    $("asClock").textContent = hhmm(z.h);
+    setT($("asClock"), hhmm(z.h));
     var left = Math.max(0, 60 - Math.round((z.h * 3600) % 60));
-    $("asTicker").textContent = "این صفحه می‌ماند تا اذان تمام شود · " + f(left) + " ثانیه";
+    setT($("asTicker"), "این صفحه می‌ماند تا اذان تمام شود · " + f(left) + " ثانیه");
   }
   function closeAdhanScreen(silent) {
     $("adhanScreen").hidden = true;
@@ -1468,11 +1491,20 @@
   $("dbMoon").onclick = function () { go("calendar"); };
 
   /* ================= ساعت جهانی ================= */
+  var lastAllMin = -1;
   setInterval(function () {
-    if (!$("home").hidden) tick(); else if (C) { C = compute(); tickDateBar(); }
-    if (!$("azan").hidden) drawAzan();
+    if (document.hidden) return;                     /* در پس‌زمینه هیچ محاسبه‌ای انجام نمی‌شود */
+    if (!$("home").hidden) {
+      tick();
+    } else {
+      var mAll = Math.floor(Date.now() / 60000);
+      if (C && mAll !== lastAllMin) { lastAllMin = mAll; C = compute(); drawArc(); renderMiniTimes(); }
+      tickDateBar();
+      if (!$("azan").hidden) drawAzan();
+    }
     checkAlert();
-    if (TODAY !== jdnNow()) { TODAY = jdnNow(); if (!$("calendar").hidden) renderCalendar(); renderDateBar(); }
+    var today = jdnNow();
+    if (TODAY !== today) { TODAY = today; if (!$("calendar").hidden) renderCalendar(); renderDateBar(); }
   }, 1000);
 
   /* ================= شروع ================= */
