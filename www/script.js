@@ -134,7 +134,12 @@
     role: "سازنده و طراح نیاز",
     bio: "نیاز را ساختم تا نماز با حضور قلب بیشتر و حواس‌پرتی کمتر خوانده شود؛ با محتوای کامل و بدون حذف.",
     version: "۳٫۰",
-    links: { "تلگرام": "", "اینستاگرام": "", "ایمیل": "", "وب‌سایت": "" }
+    links: [
+      { n: "روبیکا", v: "https://rubika.ir/miim_dev", i: "🟣" },
+      { n: "تلگرام", v: "https://t.me/miim_dev", i: "✈️" },
+      { n: "اینستاگرام", v: "https://instagram.com/miim_dev", i: "📸" },
+      { n: "تماس", v: "tel:09399887950", i: "📞", t: "۰۹۳۹۹۸۸۷۹۵۰" }
+    ]
   };
 
   /* ================= تصاویر حالت‌ها ================= */
@@ -539,6 +544,7 @@
     }
     renderCalendar();
   }
+  function CANVAS_LABEL(i) { return CAL.fmtJalali(i.jdn) + " · " + CAL.fmtHijri(i.jdn) + " · " + CAL.fmtGreg(i.jdn); }
   function chipRow() {
     return '<div class="calfilters">' + Object.keys(CAL.CATS).map(function (c) {
       return '<button type="button" data-cat="' + c + '" aria-pressed="' + (cfg.filters[c] !== false) + '">' + c + "</button>";
@@ -549,7 +555,7 @@
     var today = jdnNow(), cells = calMonthMatrix(), html = "", i;
     $("calTitle").textContent = calTitle();
     all("#calView button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.v === cfg.calView); });
-    $("calDow").innerHTML = CAL.WEEK_S.map(function (w) { return "<span>" + w + "</span>"; }).join("");
+    $("calDow").innerHTML = CAL.WEEK_S.map(function (w, wi) { return "<span" + (wi === 6 ? ' class="fri"' : "") + ">" + w + "</span>"; }).join("");
     for (i = 0; i < cells.length; i++) {
       var jdn = cells[i], info = dayInfoOf(jdn);
       var occ = info.occ.filter(function (o) { return cfg.filters[o.cat] !== false; });
@@ -563,9 +569,13 @@
       if (jdn === today) cls.push("today");
       if (info.friday) cls.push("fri");
       if (occ.some(function (o) { return o.off; })) cls.push("holiday");
-      html += '<button type="button" class="' + cls.join(" ") + '" data-jdn="' + jdn + '">' +
-        '<b>' + f(info.j.d) + "</b>" +
-        '<i>' + f(info.h.d) + "</i>" +
+      /* عدد بزرگ = روز در همان تقویمی که انتخاب شده؛ عدد کوچک = تاریخ شمسی */
+      var bigDay = info.j.d, smallDay = info.h.d;
+      if (cfg.calView === "h") { bigDay = info.h.d; smallDay = info.j.d; }
+      else if (cfg.calView === "g") { bigDay = info.g.d; smallDay = info.j.d; }
+      html += '<button type="button" class="' + cls.join(" ") + '" data-jdn="' + jdn + '" aria-label="' + info.weekday + " " + CANVAS_LABEL(info) + '">' +
+        '<b>' + f(bigDay) + "</b>" +
+        '<i>' + f(smallDay) + "</i>" +
         (occ.length ? '<s class="' + (occ[0].off ? "off" : "") + '"></s>' : "") +
         "</button>";
     }
@@ -1026,10 +1036,11 @@
     $("cname").textContent = CREATOR.name; $("crole").textContent = CREATOR.role; $("cbio").textContent = CREATOR.bio;
     $("cver").textContent = "نسخهٔ " + CREATOR.version;
     var h = "";
-    Object.keys(CREATOR.links).forEach(function (k) {
-      var v = CREATOR.links[k]; if (!v) return;
-      if (k === "ایمیل" && v.indexOf("mailto:") !== 0) v = "mailto:" + v;
-      h += '<a class="chip" target="_blank" rel="noopener" href="' + v + '">' + k + "</a>";
+    (CREATOR.links || []).forEach(function (l) {
+      if (!l || !l.v) return;
+      var ext = l.v.indexOf("http") === 0 ? ' target="_blank" rel="noopener"' : "";
+      h += '<a class="chip clink" href="' + l.v + '"' + ext + '><i>' + (l.i || "🔗") + "</i>" + l.n +
+        (l.t ? ' <b class="cli-num" dir="ltr">' + l.t + "</b>" : "") + "</a>";
     });
     $("clinks").innerHTML = h;
     var total = 0; Object.keys(log).forEach(function (d) { total += log[d].length; });
@@ -1511,8 +1522,14 @@
   applyCfg();
   ensureCal();
   TODAY = jdnNow();
-  setTimeout(function () { $("splash").classList.add("hide"); }, 2100);
-  $("splash").onclick = function () { $("splash").classList.add("hide"); };
+  /* اسپلش به‌محض آماده‌شدن برنامه بسته می‌شود (نه با ۲ ثانیه انتظارِ ثابت) */
+  var splashGone = false;
+  function hideSplash() { if (splashGone) return; splashGone = true; $("splash").classList.add("hide"); }
+  $("splash").onclick = hideSplash;
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () { setTimeout(hideSplash, 380); });
+  });
+  setTimeout(hideSplash, 1600);        /* سقف مطمئن برای دستگاه‌های کند */
   C = compute();
   if (sess && sess.t === "q" && sess.k && pr(sess.k)) renderTq();
   else if (sess && sess.k && pr(sess.k)) { autoHold = true; renderPray(); toast("نماز نیمه‌کاره مانده بود؛ برای ادامه «ادامهٔ خودکار» را بزن."); }

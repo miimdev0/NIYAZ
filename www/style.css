@@ -72,7 +72,7 @@ body.adhan-open #app{opacity:.22;pointer-events:none}
 .screen{display:flex;flex-direction:column;gap:14px;animation:enter .35s ease-out}
 .screen.full{min-height:calc(100dvh - 40px)}
 @keyframes enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.glass{background:var(--glass);border:1px solid var(--line);-webkit-backdrop-filter:blur(11px) saturate(140%);backdrop-filter:blur(11px) saturate(140%);box-shadow:var(--shadow)}
+.glass{background:var(--glass);border:1px solid var(--line);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:var(--shadow)}
 .card{border-radius:24px;padding:16px}
 .muted{color:var(--muted);font-size:13px}
 .note{font-size:12px;color:var(--muted);text-align:center;margin:0;line-height:1.9}
@@ -101,7 +101,7 @@ h3{margin:0 0 2px;font-size:16px}
 
 /* ---------- نوار دائمی تاریخ ---------- */
 #datebar{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:20px;margin-bottom:12px;
-  background:linear-gradient(120deg,var(--glass2),var(--glass));border:1px solid var(--line);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:var(--shadow)}
+  background:linear-gradient(120deg,var(--glass2),var(--glass));border:1px solid var(--line);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:var(--shadow)}
 body[data-datebar="0"] #datebar{display:none}
 body.praying #datebar,body.adhan-open #datebar{display:none}
 .db-main{flex:1;display:flex;align-items:center;gap:10px;background:none;border:0;padding:2px;text-align:start;cursor:pointer;overflow:hidden}
@@ -156,16 +156,18 @@ body.praying #datebar,body.adhan-open #datebar{display:none}
 
 /* ---------- تقویم ---------- */
 .cal-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.cal-nav{display:flex;gap:6px}
-.cal-nav button{width:42px;height:42px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.1);font-size:18px;cursor:pointer}
-.cal-title{font-size:19px;font-weight:800;color:var(--gold)}
+.cal-head>div{flex:1;min-width:0;text-align:center}
+.cal-nav,.cal-head>button{width:42px;height:42px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.1);color:var(--ink);font-size:20px;line-height:1;cursor:pointer;padding:0}
+.cal-head>button:active{transform:scale(.94)}
+.cal-title{font-size:clamp(16px,4.6vw,19px);font-weight:800;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cal-sub{font-size:11.5px;color:var(--muted)}
-.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
-.cal-dow span{text-align:center;font-size:12px;color:var(--muted);font-weight:700}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.ccell{position:relative;aspect-ratio:1;border-radius:14px;border:1px solid transparent;background:rgba(255,255,255,.05);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;padding:2px}
-.ccell b{font-size:15px;font-weight:700}
-.ccell i{font-size:10px;color:var(--muted);font-style:normal}
+.cal-dow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-bottom:4px}
+.cal-dow span{text-align:center;font-size:clamp(10.5px,3vw,12px);color:var(--muted);font-weight:700}
+.cal-dow span.fri{color:#ff9a8b}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.ccell{position:relative;min-width:0;aspect-ratio:1;border-radius:14px;border:1px solid transparent;background:rgba(255,255,255,.05);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;padding:1px;overflow:hidden;line-height:1}
+.ccell b{font-size:clamp(12.5px,3.7vw,15px);font-weight:700;line-height:1.05}
+.ccell i{font-size:clamp(8.5px,2.4vw,10px);color:var(--muted);font-style:normal;line-height:1}
 .ccell s{width:5px;height:5px;border-radius:50%;background:var(--teal);text-decoration:none;display:block}
 .ccell s.off{background:#ff6b6b}
 .ccell.dim{opacity:.32}
@@ -174,7 +176,7 @@ body.praying #datebar,body.adhan-open #datebar{display:none}
 .ccell.today{border-color:var(--gold);background:linear-gradient(150deg,var(--gold),var(--gold2));color:#1c1400}
 .ccell.today i{color:#4a3200}
 .ccell.today s{background:#1c1400}
-.calfilters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-top:10px}
+.calfilters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px;margin-top:10px}
 .calfilters button{flex:0 0 auto;font-size:12px;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.07);cursor:pointer;color:var(--muted)}
 .calfilters button[aria-pressed="true"]{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1c1400;font-weight:700;border-color:transparent}
 .ct-head{display:flex;justify-content:space-between;align-items:center;font-weight:700}
@@ -349,12 +351,15 @@ body.adhan-open{overflow:hidden}
 .crole{color:var(--muted);font-size:14px;position:relative}
 .cbio{line-height:2;font-size:14.5px;position:relative;max-width:34ch}
 .clinks{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.clink{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-weight:700}
+.clink i{font-style:normal;font-size:15px;line-height:1}
+.cli-num{font-weight:700;font-size:12.5px;opacity:.75}
 .cstats{display:flex;justify-content:space-around;text-align:center}
 .cstats div{display:flex;flex-direction:column;gap:2px}
 .cstats b{font-size:20px;color:var(--gold)}
 .cstats span{font-size:12px;color:var(--muted)}
 .cseal{position:static;margin-top:6px}
-#tabs{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom,0px));width:min(450px,calc(100% - 26px));display:flex;border-radius:28px;padding:6px;z-index:8;background:var(--glass2);border:1px solid var(--line);-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);box-shadow:var(--shadow)}
+#tabs{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom,0px));width:min(450px,calc(100% - 26px));display:flex;border-radius:28px;padding:6px;z-index:8;background:var(--glass2);border:1px solid var(--line);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:var(--shadow)}
 body.praying #tabs,body.sub #tabs,body.adhan-open #tabs{display:none}
 #tabs button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px;border-radius:22px;color:var(--muted);font-size:10.5px;cursor:pointer}
 #tabs svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -374,6 +379,11 @@ body.praying #tabs,body.sub #tabs,body.adhan-open #tabs{display:none}
 
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}
 .glass,#tabs,#sheet,#datebar{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:var(--glass2)}}
+@media (max-width:380px){
+  .cal-head>button,.cal-nav{width:36px;height:36px;border-radius:12px;font-size:18px}
+  .cal-grid,.cal-dow{gap:3px}
+  .ccell{border-radius:11px}
+}
 @media (max-width:360px){
   .rcount{font-size:32px}
   .db-j{font-size:14px}
