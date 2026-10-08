@@ -75,15 +75,24 @@
       </div>
       <svg id="arc" viewBox="0 0 320 96" class="arc" role="img" aria-label="مسیر خورشید"></svg>
       <div class="mini-times" id="miniTimes"></div>
-      <button id="startBtn" class="primary big glow" type="button">شروع نماز</button>
+      <div class="row startrow">
+        <button id="startBtn" class="primary big glow" type="button">شروع نماز</button>
+        <button id="startBtn2" class="glass big" type="button" hidden>نماز دوم</button>
+      </div>
     </div>
 
     <div class="glass card tl" id="tlCard">
-      <div class="cardhead"><b>چقدر وقت داری؟</b><span class="tlbadge" id="tlBadge"></span></div>
+      <div class="cardhead"><b id="tlTitle">چقدر وقت داری؟</b><span class="tlbadge" id="tlBadge"></span></div>
       <div class="tlbig" id="tlBig"></div>
       <div class="tlbar"><i id="tlFill"></i></div>
       <div class="tlrow"><span id="tlA"></span><span id="tlB"></span></div>
       <div class="tlmsg" id="tlMsg"></div>
+    </div>
+
+    <div class="glass card qzcard" id="qazaCard" hidden>
+      <div class="cardhead"><b>نمازهای قضا</b><span class="muted" id="qzCount"></span></div>
+      <ul class="qz-list" id="qzList"></ul>
+      <p class="note">هر نمازی که در وقتش خوانده نشود، خودکار اینجا ثبت می‌شود؛ در اولین فرصت شرعی بخوانش.</p>
     </div>
 
     <ul id="list" class="plist"></ul>
@@ -239,6 +248,8 @@
       <div class="seg" id="azanSeg"><button type="button" data-v="on">روشن</button><button type="button" data-v="off">فقط اعلان</button></div>
       <label>پخش صدای اذان در وقت نماز</label>
       <div class="seg" id="playSeg"><button type="button" data-v="on">روشن</button><button type="button" data-v="off">خاموش</button></div>
+      <label>کدام اذان‌ها برایت پخش شود؟</label>
+      <div class="chips azpick" id="azanPickBox"></div>
       <label>اعلان دائمی تاریخ (بالای صفحه)</label>
       <div class="seg" id="dateNotifSeg"><button type="button" data-v="on">روشن</button><button type="button" data-v="off">خاموش</button></div>
       <label>یادآوری قبل از وقت</label>
@@ -275,6 +286,8 @@
       </select>
       <label>وقت عصر</label>
       <div class="seg" id="asrSeg"><button type="button" data-v="1">سایه برابر شاخص</button><button type="button" data-v="2">دو برابر (حنفی)</button></div>
+      <label>جمع خواندن ظهر و عصر / مغرب و عشا</label>
+      <div class="seg" id="jamSeg"><button type="button" data-v="auto">خودکار</button><button type="button" data-v="on">جمع می‌خوانم</button><button type="button" data-v="off">جدا می‌خوانم</button></div>
       <label>تنظیم دستی (دقیقه)</label>
       <div id="adjBox" class="adj"></div>
     </div>

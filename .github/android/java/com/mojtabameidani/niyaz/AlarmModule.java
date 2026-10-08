@@ -223,26 +223,45 @@ public class AlarmModule extends Plugin {
 
     @PluginMethod
     public void refreshWidget(PluginCall call) {
-        NiyazWidgetProvider.redraw(getContext());
+        WidgetUpdate.redrawAll(getContext());
         call.resolve(status());
     }
 
-    /** افزودن ویجت به صفحهٔ اصلی */
+    /** افزودن یکی از ویجت‌های نیاز به صفحهٔ اصلی (کلاسیک/کوچک/اوقات/هفته) */
     @PluginMethod
     public void addWidget(PluginCall call) {
+        pin(call.getString("which", "classic"), call);
+    }
+
+    /** همان کار با نام تازه؛ برنامهٔ وب این را صدا می‌زند */
+    @PluginMethod
+    public void pinWidget(PluginCall call) {
+        pin(call.getString("which", "classic"), call);
+    }
+
+    private void pin(String which, PluginCall call) {
         Context c = getContext();
         JSObject o = new JSObject();
         o.put("pinned", false);
+        o.put("which", which);
+        Class<?> cls = providerFor(which);
         try {
             if (Build.VERSION.SDK_INT >= 26) {
                 AppWidgetManager m = AppWidgetManager.getInstance(c);
                 if (m.isRequestPinAppWidgetSupported()) {
-                    m.requestPinAppWidget(new ComponentName(c, NiyazWidgetProvider.class), null, null);
+                    m.requestPinAppWidget(new ComponentName(c, cls), null, null);
                     o.put("pinned", true);
                 }
             }
         } catch (Throwable ignored) { }
         call.resolve(o);
+    }
+
+    private static Class<?> providerFor(String which) {
+        if ("mini".equals(which)) return NiyazWidgetMini.class;
+        if ("times".equals(which)) return NiyazWidgetTimes.class;
+        if ("week".equals(which)) return NiyazWidgetWeek.class;
+        return NiyazWidgetProvider.class;
     }
 
     private void open(Intent i) {

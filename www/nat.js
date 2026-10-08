@@ -42,6 +42,7 @@ NZ.nat = (function () {
     stopAdhan: function () { return call("stopAdhan"); },
     refreshWidget: function () { return call("refreshWidget"); },
     addWidget: function () { return call("addWidget"); },
+    pinWidget: function (which) { return call("pinWidget", { which: which || "classic" }); },
     openExactSettings: function () { return call("openExactSettings"); },
     openFullScreenSettings: function () { return call("openFullScreenSettings"); },
     openBatterySettings: function () { return call("openBatterySettings"); },

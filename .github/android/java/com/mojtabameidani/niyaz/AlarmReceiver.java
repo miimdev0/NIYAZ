@@ -19,7 +19,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         try {
             if (i.getBooleanExtra("refresh", false)) {
                 AlarmScheduler.schedule(c);           // نگه‌داشت زمان‌بندی‌ها
-                NiyazWidgetProvider.redraw(c);
+                WidgetUpdate.redrawAll(c);
                 return;
             }
             String kind = i.getStringExtra("kind");

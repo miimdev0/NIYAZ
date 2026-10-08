@@ -39,12 +39,7 @@ public class NiyazWidgetProvider extends AppWidgetProvider {
     }
 
     private static PendingIntent open(Context c, String action) {
-        Intent i = new Intent(c, MainActivity.class);
-        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        if (action != null) i.putExtra("niyazAction", "{\"action\":\"" + action + "\"}");
-        int f = PendingIntent.FLAG_UPDATE_CURRENT;
-        if (Build.VERSION.SDK_INT >= 23) f |= PendingIntent.FLAG_IMMUTABLE;
-        return PendingIntent.getActivity(c, action == null ? 10 : 11, i, f);
+        return WidgetKit.open(c, action, action == null ? 10 : 11);
     }
 
     private static RemoteViews build(Context c) {
@@ -52,7 +47,7 @@ public class NiyazWidgetProvider extends AppWidgetProvider {
         v.setOnClickPendingIntent(R.id.w_root, open(c, null));
         v.setOnClickPendingIntent(R.id.w_logo, open(c, null));
 
-        JSONObject data = AlarmScheduler.readJson(c, AlarmScheduler.KEY_WIDGET);
+        JSONObject data = WidgetKit.data(c);
         if (data == null) {
             v.setTextViewText(R.id.w_j, "نیاز");
             v.setTextViewText(R.id.w_h, "برای فعال‌شدن، برنامه را باز کن");

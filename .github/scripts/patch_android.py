@@ -80,6 +80,48 @@ MANIFEST_COMPONENTS = """
                 android:name="android.appwidget.provider"
                 android:resource="@xml/niyaz_widget_info" />
         </receiver>
+
+        <receiver
+            android:name="com.mojtabameidani.niyaz.NiyazWidgetMini"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.DATE_CHANGED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/niyaz_widget_mini_info" />
+        </receiver>
+
+        <receiver
+            android:name="com.mojtabameidani.niyaz.NiyazWidgetTimes"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.DATE_CHANGED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/niyaz_widget_times_info" />
+        </receiver>
+
+        <receiver
+            android:name="com.mojtabameidani.niyaz.NiyazWidgetWeek"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.DATE_CHANGED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/niyaz_widget_week_info" />
+        </receiver>
 """
 
 MANIFEST_PERMISSIONS = """
@@ -249,7 +291,8 @@ def check_result():
     xml = read(os.path.join(MAIN, "AndroidManifest.xml"))
     gradle = read(os.path.join(APP, "build.gradle"))
     problems = []
-    for token in ("AzanService", "AzanActivity", "NiyazWidgetProvider", "BootReceiver", "USE_EXACT_ALARM", "POST_NOTIFICATIONS"):
+    for token in ("AzanService", "AzanActivity", "NiyazWidgetProvider", "NiyazWidgetMini", "NiyazWidgetTimes",
+                  "NiyazWidgetWeek", "BootReceiver", "USE_EXACT_ALARM", "POST_NOTIFICATIONS"):
         if token not in xml:
             problems.append("manifest: " + token)
     for token in ("compileSdk " + COMPILE_SDK, "targetSdkVersion " + TARGET_SDK, "minSdkVersion " + MIN_SDK):

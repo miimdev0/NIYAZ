@@ -49,7 +49,7 @@ body.noanim .glass,body.noanim #tabs,body.noanim #sheet,body.noanim .plist li bu
 .stars.s2{background-position:37px 61px;animation-delay:2.2s;background-size:140% 140%}
 body[data-phase="night"] .stars,body[data-phase="dusk"] .stars{opacity:.95}
 body[data-phase="dawn"] .stars,body[data-phase="sunset"] .stars{opacity:.35}
-@keyframes twinkle{50%{opacity:.35}}
+@keyframes twinkle{50%{opacity:.55}}
 .pattern{position:absolute;inset:0;opacity:.06;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 90 90'%3E%3Cg fill='none' stroke='%23fff' stroke-width='1.1'%3E%3Cpath d='M45 6l9 15 17-4-4 17 15 9-15 9 4 17-17-4-9 15-9-15-17 4 4-17-15-9 15-9-4-17 17 4z'/%3E%3Ccircle cx='45' cy='45' r='10'/%3E%3C/g%3E%3C/svg%3E");background-size:90px 90px}
 .orb{will-change:transform;position:absolute;left:50%;top:34%;width:120vmax;height:120vmax;transform:translate(-50%,-50%);border-radius:50%;opacity:.24;background:radial-gradient(closest-side,var(--orb),transparent 68%);transition:opacity .9s,background .9s;animation:float 26s ease-in-out infinite}
 body[data-light="1"] .orb{opacity:.42}
@@ -58,12 +58,12 @@ body[data-light="1"] .orb{opacity:.42}
 body.praying .aura{opacity:.3;animation:breathe 7s ease-in-out infinite}
 @keyframes breathe{50%{opacity:.18}}
 /* ستون‌های نور شب */
-.beams{position:absolute;inset:0;overflow:hidden;opacity:.55}
+.beams{position:absolute;inset:0;overflow:hidden;opacity:.38}
 .beams i{will-change:transform,opacity;position:absolute;top:-30%;width:26vmax;height:150vmax;background:linear-gradient(180deg,transparent,rgba(255,255,255,.07),transparent);transform:rotate(14deg);animation:beam 14s ease-in-out infinite}
 .beams i:nth-child(2){left:22%;animation-delay:3s}
 .beams i:nth-child(3){left:52%;animation-delay:6s}
 .beams i:nth-child(4){left:76%;animation-delay:9s}
-@keyframes beam{50%{opacity:.25;transform:rotate(8deg) translateX(3vmax)}}
+@keyframes beam{50%{opacity:.16;transform:rotate(11deg) translateX(2vmax)}}
 
 /* ---------- ساختار ---------- */
 #app{overflow-x:clip;width:100%;max-width:480px;padding:10px 15px calc(100px + env(safe-area-inset-bottom,0px))}
@@ -84,8 +84,13 @@ h3{margin:0 0 2px;font-size:16px}
 .chip{border:1px solid var(--line);background:rgba(255,255,255,.1);border-radius:999px;padding:8px 14px;font-size:13px;cursor:pointer}
 .primary{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1c1400;border:0;border-radius:18px;padding:14px;font-weight:700;font-size:16px;cursor:pointer}
 .primary.big{width:100%;padding:16px;font-size:17px}
-.glow{box-shadow:0 0 0 0 rgba(244,194,91,.5);animation:glow 2.6s infinite}
-@keyframes glow{70%{box-shadow:0 0 0 16px rgba(244,194,91,0)}100%{box-shadow:0 0 0 0 rgba(244,194,91,0)}}
+.glow{box-shadow:0 6px 22px rgba(244,194,91,.42)}
+/* انیمیشن هالهٔ دکمه حذف شد: روی بعضی گوشی‌ها باعث چشمک‌زدن دکمه و المان‌های اطرافش می‌شد */
+.primary.big:active{transform:translateY(1px)}
+.startrow .primary{flex:1 1 auto}
+.startrow .glass{flex:0 0 auto;border-radius:18px;padding:14px 16px;font-weight:700}
+/* اعداد ثابت تا متن هر ثانیه تکان نخورد (جلوگیری از چشمک) */
+.db-clock,.db-x,.rcount,.tlbig,.as-clock,.tiny-nums,.tbin b,.mini-times div b,.plist .t,.tq-count,.qz-when b{font-variant-numeric:tabular-nums}
 .row{display:flex;gap:10px;flex-wrap:wrap}
 .row button{flex:1;min-width:120px;border-radius:16px;padding:13px;font-size:15px;cursor:pointer;border:1px solid var(--line)}
 .field{width:100%;border:1px solid var(--line);background:rgba(255,255,255,.1);color:var(--ink);border-radius:16px;padding:12px 14px;font-size:15px;user-select:text}
@@ -147,6 +152,20 @@ body.praying #datebar,body.adhan-open #datebar{display:none}
 .plist .t{direction:ltr;font-variant-numeric:tabular-nums;color:var(--gold);font-weight:700}
 .plist .r{font-size:12px;color:var(--muted);margin-inline-start:8px}
 .plist .ok{color:var(--teal);font-weight:800;margin-inline-start:8px}
+.plist li.cur2 button{border-color:color-mix(in srgb,var(--gold) 55%,transparent);border-style:dashed}
+/* کارت «چقدر وقت داری؟ / تا نماز بعدی چقدر مانده؟» */
+.tl{overflow:hidden}
+.tl .tlbadge{font-size:11.5px;padding:4px 10px;border-radius:999px;background:color-mix(in srgb,var(--gold) 22%,transparent);color:var(--gold);font-weight:700}
+.tl .tlbig{font-size:20px;font-weight:800;line-height:1.7}
+.tl .tlbar{height:7px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden;margin:8px 0}
+.tl .tlbar i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--teal),var(--gold));transition:width .6s linear}
+.tl .tlrow{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+.tl .tlmsg{font-size:12.5px;color:var(--muted);line-height:1.9;margin-top:8px}
+.tl.warn .tlbadge{background:color-mix(in srgb,#ffb45b 26%,transparent);color:#ffb45b}
+.tl.warn .tlbar i{background:linear-gradient(90deg,#ffb45b,#ff9a3c)}
+.tl.danger .tlbadge{background:rgba(255,107,107,.24);color:#ff9a9a}
+.tl.danger .tlbar i{background:linear-gradient(90deg,#ff6b6b,#ff3d3d)}
+.tl.done .tlbar i{background:linear-gradient(90deg,var(--teal),var(--teal))}
 .week{display:flex;gap:8px;align-items:flex-end;height:96px}
 .week div{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;font-size:11px;color:var(--muted)}
 .week i{width:100%;border-radius:8px;background:rgba(255,255,255,.12);display:block;position:relative;min-height:6px;overflow:hidden}
@@ -351,9 +370,44 @@ body.adhan-open{overflow:hidden}
 .crole{color:var(--muted);font-size:14px;position:relative}
 .cbio{line-height:2;font-size:14.5px;position:relative;max-width:34ch}
 .clinks{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-.clink{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-weight:700}
-.clink i{font-style:normal;font-size:15px;line-height:1}
-.cli-num{font-weight:700;font-size:12.5px;opacity:.75}
+.clinks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%}
+.clink{position:relative;display:flex;flex-direction:column;gap:2px;padding:13px 14px;border-radius:20px;text-decoration:none;color:#fff;overflow:hidden;
+  background:linear-gradient(135deg,var(--c1),var(--c2));box-shadow:0 10px 26px color-mix(in srgb,var(--c2) 42%,transparent);border:1px solid rgba(255,255,255,.16);min-height:78px}
+.clink::after{content:"";position:absolute;inset:-40% -20% auto;height:80%;background:radial-gradient(closest-side,rgba(255,255,255,.35),transparent);pointer-events:none}
+.clink svg{width:26px;height:26px;fill:#fff;filter:drop-shadow(0 2px 6px rgba(0,0,0,.3))}
+.clink b{font-size:15px;font-weight:800;margin-top:4px}
+.clink span{font-size:11.5px;opacity:.9;direction:ltr;text-align:start}
+.clink:active{transform:scale(.97)}
+.clink.wide{grid-column:span 2;flex-direction:row;align-items:center;gap:10px;min-height:auto}
+.clink.wide i{display:flex;flex-direction:column;font-style:normal;line-height:1.5}
+.clink.wide span{font-size:14px;font-weight:700;letter-spacing:.4px}
+.cli-copy{margin-inline-start:auto;background:rgba(255,255,255,.22);border:0;color:#fff;font-size:11px;padding:6px 10px;border-radius:999px;cursor:pointer;font-weight:700}
+.cli-num{font-weight:700;font-size:12.5px;opacity:.85}
+.azpick{display:flex;flex-wrap:wrap;gap:8px}
+.azpick button{display:flex;align-items:center;gap:6px;font-size:13px;padding:9px 13px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--muted);cursor:pointer;font-weight:700}
+.azpick button i{font-style:normal;font-size:14px}
+.azpick button[aria-pressed="true"]{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1c1400;border-color:transparent}
+.qzcard{border-color:color-mix(in srgb,var(--gold) 40%,transparent)}
+.qz-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.qz-list li{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:16px;background:linear-gradient(135deg,rgba(255,107,107,.16),rgba(255,107,107,.04));border:1px solid rgba(255,107,107,.28)}
+.qz-when{display:flex;flex-direction:column;min-width:64px;font-size:11px;color:var(--muted);line-height:1.5}
+.qz-when b{font-size:13px;color:var(--gold)}
+.qz-body{flex:1;display:flex;flex-direction:column;font-size:13.5px;line-height:1.6}
+.qz-body em{font-style:normal;font-size:11.5px;color:var(--muted)}
+.qz-list button{border:0;border-radius:12px;padding:8px 11px;font-size:12px;font-weight:700;cursor:pointer;background:var(--gold);color:#1c1400}
+.qz-list button.ghost{background:rgba(255,255,255,.12);color:var(--ink);border:1px solid var(--line)}
+.qz-list li.qz-more{display:block;background:rgba(255,255,255,.06);border-style:dashed;font-size:12px;color:var(--muted);text-align:center}
+.plist .qz{font-size:10.5px;padding:2px 7px;border-radius:999px;background:#ff6b6b;color:#2a0000;font-weight:700;margin-inline-start:6px}
+.wpig{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.wpcard{border-radius:18px;padding:10px;background:linear-gradient(160deg,var(--glass2),var(--glass));border:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.wpcard b{font-size:13px;color:var(--gold)}
+.wpcard em{font-style:normal;font-size:11px;color:var(--muted);line-height:1.6}
+.wpcard button{margin-top:auto;border:0;border-radius:12px;padding:8px;font-size:12px;font-weight:700;background:var(--gold);color:#1c1400;cursor:pointer}
+.wpmini{border-radius:12px;padding:8px;background:rgba(4,10,24,.5);border:1px solid var(--line);font-size:11px;line-height:1.7;color:var(--muted);font-variant-numeric:tabular-nums}
+.wpmini b{color:var(--ink);font-size:12.5px}
+.wpmini .row7{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+.wpmini .row7 i{font-style:normal;font-size:10.5px;padding:4px 0;border-radius:6px;background:rgba(255,255,255,.07)}
+.wpmini .row7 i.on{background:var(--gold);color:#1c1400;font-weight:700}
 .cstats{display:flex;justify-content:space-around;text-align:center}
 .cstats div{display:flex;flex-direction:column;gap:2px}
 .cstats b{font-size:20px;color:var(--gold)}
@@ -380,6 +434,9 @@ body.praying #tabs,body.sub #tabs,body.adhan-open #tabs{display:none}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}
 .glass,#tabs,#sheet,#datebar{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:var(--glass2)}}
 @media (max-width:380px){
+  .clinks{grid-template-columns:1fr}
+  .clink.wide{grid-column:span 1}
+  .azpick button{font-size:12px;padding:8px 11px}
   .cal-head>button,.cal-nav{width:36px;height:36px;border-radius:12px;font-size:18px}
   .cal-grid,.cal-dow{gap:3px}
   .ccell{border-radius:11px}
