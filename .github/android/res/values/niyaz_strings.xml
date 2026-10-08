@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- نیاز · متن‌ها · © Mojtaba Meidani -->
+    <string name="niyaz_name">نیاز</string>
+    <string name="niyaz_widget_desc">تاریخ شمسی، میلادی و قمری و اذان بعدی</string>
+    <string name="niyaz_widget_mini_desc">اذان بعدی با شمارش معکوس زنده</string>
+    <string name="niyaz_widget_times_desc">اوقات پنج‌گانهٔ امروز</string>
+    <string name="niyaz_widget_week_desc">نمای هفت‌روزه با تاریخ شمسی</string>
+</resources>

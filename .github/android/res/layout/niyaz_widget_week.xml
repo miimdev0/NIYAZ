@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- نیاز · ویجت هفتگی · © Mojtaba Meidani -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/w4_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/niyaz_widget_bg"
+    android:layoutDirection="rtl"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <TextView
+        android:id="@+id/w4_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:textColor="#FFF4C25B"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/niyaz_widget_cell"
+            android:layout_marginEnd="3dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="6dp">
+            <TextView android:id="@+id/w4_w1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FF9FB4D8" android:textSize="10sp" />
+            <TextView android:id="@+id/w4_d1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFF4C25B" android:textSize="14sp" android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/niyaz_widget_cell"
+            android:layout_marginEnd="3dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="6dp">
+            <TextView android:id="@+id/w4_w2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FF9FB4D8" android:textSize="10sp" />
+            <TextView android:id="@+id/w4_d2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFEAF1FF" android:textSize="14sp" android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/niyaz_widget_cell"
+            android:layout_marginEnd="3dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="6dp">
+            <TextView android:id="@+id/w4_w3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FF9FB4D8" android:textSize="10sp" />
+            <TextView android:id="@+id/w4_d3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFEAF1FF" android:textSize="14sp" android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/niyaz_widget_cell"
+            android:layout_marginEnd="3dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="6dp">
+            <TextView android:id="@+id/w4_w4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FF9FB4D8" android:textSize="10sp" />
+            <TextView android:id="@+id/w4_d4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFEAF1FF" android:textSize="14sp" android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/niyaz_widget_cell"
+            android:layout_marginEnd="3dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="6dp">
+            <TextView android:id="@+id/w4_w5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FF9FB4D8" android:textSize="10sp" />
+            <TextView android:id="@+id/w4_d5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFEAF1FF" android:textSize="14sp" android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/niyaz_widget_cell"
+            android:layout_marginEnd="3dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="6dp">
+            <TextView android:id="@+id/w4_w6" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FF9FB4D8" android:textSize="10sp" />
+            <TextView android:id="@+id/w4_d6" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFEAF1FF" android:textSize="14sp" android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/niyaz_widget_cell"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="6dp">
+            <TextView android:id="@+id/w4_w7" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FF9FB4D8" android:textSize="10sp" />
+            <TextView android:id="@+id/w4_d7" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFEAF1FF" android:textSize="14sp" android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/w4_next"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:maxLines="1"
+        android:textColor="#FF5FD3D0"
+        android:textSize="11sp" />
+</LinearLayout>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- نیاز · پوستهٔ صفحهٔ اذان · © Mojtaba Meidani -->
+    <color name="niyaz_dark">#FF050B1F</color>
+    <color name="niyaz_mid">#FF0C2A44</color>
+
+    <style name="NiyazAzanTheme" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/niyaz_dark</item>
+        <item name="android:statusBarColor">@color/niyaz_dark</item>
+        <item name="android:navigationBarColor">@color/niyaz_dark</item>
+        <item name="android:colorAccent">#FFF4C25B</item>
+    </style>
+</resources>
