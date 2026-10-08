@@ -258,7 +258,7 @@ body.praying #datebar,body.adhan-open #datebar{display:none}
 .stepname{font-size:15px;font-weight:700;color:var(--gold)}
 .arline{display:flex;flex-direction:column;gap:4px;padding:7px 0;border-bottom:1px dashed rgba(255,255,255,.09)}
 .arline:last-child{border-bottom:0}
-.ar{font-family:"Amiri","Traditional Arabic","Doran",serif;font-size:var(--arfs);line-height:2.05}
+.ar{font-family:"Doran","Traditional Arabic",serif;font-size:var(--arfs);line-height:2.05}
 .tr{font-size:12.5px;color:var(--muted);line-height:1.8}
 .fa{font-size:14px;color:var(--muted);line-height:1.9}
 .badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}

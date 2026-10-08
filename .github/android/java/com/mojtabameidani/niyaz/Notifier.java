@@ -199,7 +199,7 @@ public final class Notifier {
         if (stopAction != null) {
             b.addAction(android.R.drawable.ic_media_pause, "قطع اذان", stopAction);
         }
-        b.setDeleteIntent(stopAction);
+        if (stopAction != null) b.setDeleteIntent(stopAction);
         return b.build();
     }
 
