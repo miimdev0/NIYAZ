@@ -2,7 +2,7 @@ name: Build Niyaz APK
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, "arena/**"]
   workflow_dispatch:
 
 jobs:
@@ -29,19 +29,27 @@ jobs:
       - name: Generate app icons
         run: npx capacitor-assets generate --android
 
-      - name: Add permissions (notifications, alarms, location, vibration)
-        run: |
-          sed -i 's#</manifest>#    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />\n    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n    <uses-permission android:name="android.permission.VIBRATE" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n</manifest>#' android/app/src/main/AndroidManifest.xml
-          grep -c "POST_NOTIFICATIONS" android/app/src/main/AndroidManifest.xml
-
       - name: Sync web files
         run: npx cap sync android
+
+      - name: Sanity check web sources
+        run: |
+          node --check www/script.js
+          node --check www/cal.js
+          node --check www/content.js
+          node --check www/nat.js
+          test -f www/audio/azan.mp3
+          test -f www/fonts/Doran.ttf
+          echo "web sources ok"
+
+      - name: Patch Android project (alarm service, adhan screen, widget, permissions)
+        run: python3 .github/scripts/patch_android.py
 
       - name: Build debug APK
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

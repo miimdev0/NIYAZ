@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- نیاز · متن‌ها · © Mojtaba Meidani -->
+    <string name="niyaz_name">نیاز</string>
+    <string name="niyaz_widget_desc">تاریخ شمسی، میلادی و قمری و اوقات نماز</string>
+</resources>

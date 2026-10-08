@@ -5,17 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#071428">
 <meta name="author" content="Mojtaba Meidani | مجتبی میدانی">
+<meta name="description" content="نیاز · همراه هوشمند نماز — اوقات شرعی، تقویم سه‌گانه، اذان و آموزش کامل نماز">
 <title>نیاز · همراه هوشمند نماز</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
 <!-- نیاز · ساخته‌شده توسط مجتبی میدانی · © Mojtaba Meidani -->
-<body data-phase="night">
+<body data-phase="night" data-theme="midnight">
 
 <div id="sky" aria-hidden="true">
+  <div class="beams"><i></i><i></i><i></i><i></i></div>
   <div class="stars"></div><div class="stars s2"></div>
   <div class="pattern"></div>
+  <div class="orb"></div>
   <div class="aura"></div>
 </div>
 
@@ -23,15 +26,33 @@
   <img src="icon.svg" alt="" class="splogo">
   <h1 class="spname">نیاز</h1>
   <p class="sptag">همراه هوشمند نماز</p>
+  <p class="sphint">تقویم سه‌گانه · اذان تمام‌صفحه · آموزش کامل نماز</p>
   <div class="sign"><span class="signtxt">مجتبی میدانی</span><svg viewBox="0 0 220 24" aria-hidden="true"><path d="M4 16 C40 2 70 26 110 12 S180 6 216 14" fill="none" stroke="url(#sg)" stroke-width="2.4" stroke-linecap="round"/><defs><linearGradient id="sg"><stop offset="0" stop-color="#ffe29a"/><stop offset="1" stop-color="#e0a12b"/></linearGradient></defs></svg></div>
 </div>
 
 <main id="app">
 
-  <!-- خانه -->
+  <!-- نوار دائمی تاریخ -->
+  <div id="datebar" class="glass">
+    <button id="dbOpen" class="db-main" type="button" aria-label="تقویم">
+      <span class="db-j" id="dbJ">…</span>
+      <span class="db-mid">
+        <span class="db-h" id="dbH"></span>
+        <span class="db-g" id="dbG"></span>
+      </span>
+    </button>
+    <div class="db-side">
+      <span class="db-clock" id="dbClock">--:--</span>
+      <span class="db-x" id="dbX"></span>
+      <span class="db-x" id="dbMoon"></span>
+    </div>
+  </div>
+  <div id="occBar" class="occbar" hidden></div>
+
+  <!-- ============ خانه ============ -->
   <section id="home" class="screen" data-tab="home">
     <header class="top glass pill">
-      <div class="brand"><img src="icon.svg" alt="" class="mini"><div><b>نیاز</b><div class="dates" id="dates"></div></div></div>
+      <div class="brand"><img src="icon.svg" alt="" class="mini"><div><b>نیاز</b><div class="muted" id="dbWd" style="font-size:11px"></div></div></div>
       <button id="locChip" class="chip" type="button">📍 <span id="locName">تهران</span></button>
     </header>
 
@@ -49,6 +70,7 @@
         </div>
       </div>
       <svg id="arc" viewBox="0 0 320 96" class="arc" role="img" aria-label="مسیر خورشید"></svg>
+      <div class="mini-times" id="miniTimes"></div>
       <button id="startBtn" class="primary big glow" type="button">شروع نماز</button>
     </div>
 
@@ -76,9 +98,44 @@
       <button type="button" data-s="shia">شیعه</button>
       <button type="button" data-s="sunni">اهل سنت</button>
     </div>
+    <p class="note">متن نماز، اذان و تعقیبات بر اساس مذهبی که انتخاب می‌کنی نمایش داده می‌شود.</p>
   </section>
 
-  <!-- قبله -->
+  <!-- ============ تقویم ============ -->
+  <section id="calendar" class="screen" hidden data-tab="calendar">
+    <header class="top glass pill"><b>تقویم و مناسبت‌ها</b><span class="muted" id="calHdrDate"></span></header>
+
+    <div class="seg glass" id="calView" role="group" aria-label="تقویم">
+      <button type="button" data-v="j">شمسی</button>
+      <button type="button" data-v="h">قمری</button>
+      <button type="button" data-v="g">میلادی</button>
+    </div>
+
+    <div class="glass card">
+      <div class="cal-head">
+        <button type="button" class="cal-nav" id="calPrev" aria-label="ماه قبل">‹</button>
+        <div>
+          <div class="cal-title" id="calTitle"></div>
+          <div class="cal-sub">برای دیدن مناسبت‌ها روی روز بزن</div>
+        </div>
+        <button type="button" class="cal-nav" id="calNext" aria-label="ماه بعد">›</button>
+      </div>
+      <div class="cal-dow" id="calDow"></div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="calfilters" id="calFilters"></div>
+      <div class="row" style="margin-top:10px"><button type="button" class="glass" id="calTodayNav">برو به امروز</button></div>
+    </div>
+
+    <div class="glass card" id="calToday"></div>
+
+    <div class="glass card">
+      <div class="cardhead"><b>مناسبت‌های پیش رو</b><span class="muted">۷۵ روز آینده</span></div>
+      <ul class="up-list" id="calUp"></ul>
+      <p class="note">تاریخ قمری با تقویم امّالقری محاسبه می‌شود و ممکن است با اعلام رسمی یک روز اختلاف داشته باشد.</p>
+    </div>
+  </section>
+
+  <!-- ============ قبله ============ -->
   <section id="qibla" class="screen" hidden data-tab="qibla">
     <header class="top glass pill"><b>جهت قبله</b><button id="compassBtn" class="chip" type="button">فعال‌سازی قطب‌نما</button></header>
     <div class="compass glass" id="compass">
@@ -97,19 +154,7 @@
     <p class="note">گوشی را صاف نگه دار و دور از آهن‌ربا. وقتی کعبه بالای صفحه قرار گرفت و رنگ سبز شد، رو به قبله‌ای.</p>
   </section>
 
-  <!-- تسبیح -->
-  <section id="tasbih" class="screen" hidden data-tab="tasbih">
-    <header class="top glass pill"><b>تسبیح</b><button id="tbReset" class="chip" type="button">صفر کن</button></header>
-    <div id="tbChips" class="chips"></div>
-    <div class="tbring" id="tbRing"><div class="tbin"><b id="tbCnt">۰</b><span id="tbOf"></span></div></div>
-    <div class="glass card tbzikr"><div class="ar" id="tbAr" lang="ar" dir="rtl"></div><div class="muted" id="tbFa"></div></div>
-    <div class="chips" id="tbTargets"></div>
-    <div class="row"><button id="tbUndo" type="button" class="glass">یکی کم کن</button></div>
-    <p class="note" id="tbToday"></p>
-    <p class="note">هر جای صفحه را لمس کن.</p>
-  </section>
-
-  <!-- اذان و اقامه -->
+  <!-- ============ اذان و اقامه ============ -->
   <section id="azan" class="screen" hidden data-tab="azan">
     <header class="top glass pill"><b>اذان و اقامه</b><span class="muted" id="azSchemeTag"></span></header>
 
@@ -129,6 +174,7 @@
         <button type="button" id="azPlaySoft" class="glass">▶ صدای ملایم</button>
         <button type="button" id="azStop" class="glass">■ توقف</button>
       </div>
+      <p class="note">مؤذن انتخابی در این نسخه نیست؛ صدای اذان از فایل پوشهٔ audio پخش می‌شود.</p>
     </div>
 
     <div class="seg glass" id="azTabSeg" role="group" aria-label="متن">
@@ -160,20 +206,55 @@
     </div>
   </section>
 
-  <!-- تنظیمات -->
+  <!-- ============ تسبیح ============ -->
+  <section id="tasbih" class="screen" hidden data-tab="tasbih">
+    <header class="top glass pill"><b>تسبیح و ذکر</b><button id="tbReset" class="chip" type="button">صفر کن</button></header>
+    <div id="tbChips" class="chips"></div>
+    <div class="tbring" id="tbRing"><div class="tbin"><b id="tbCnt">۰</b><span id="tbOf"></span></div></div>
+    <div class="glass card tbzikr"><div class="ar" id="tbAr" lang="ar" dir="rtl"></div><div class="muted" id="tbFa"></div></div>
+    <div class="chips" id="tbTargets"></div>
+    <div class="row"><button id="tbUndo" type="button" class="glass">یکی کم کن</button></div>
+    <p class="note" id="tbToday"></p>
+    <p class="note">هر جای صفحه را لمس کن.</p>
+
+    <div class="glass card">
+      <div class="cardhead"><b>دعاها و اذکار</b><span class="muted">برای خواندن یا شمارش لمس کن</span></div>
+      <ul class="dua-list" id="duaList"></ul>
+    </div>
+  </section>
+
+  <!-- ============ تنظیمات ============ -->
   <section id="settings" class="screen" hidden data-tab="settings">
-    <header class="top glass pill"><b>تنظیمات</b></header>
+    <header class="top glass pill"><b>تنظیمات</b><span class="muted">نیاز ۳٫۰</span></header>
 
     <div class="glass card group">
-      <h3>اعلان‌ها</h3>
+      <h3>اعلان‌ها و صفحهٔ اذان</h3>
       <label>اعلان وقت نماز</label>
       <div class="seg" id="notifSeg"><button type="button" data-v="off">خاموش</button><button type="button" data-v="on">روشن</button></div>
+      <label>در وقت اذان، صفحهٔ تمام‌صفحه باز شود</label>
+      <div class="seg" id="azanSeg"><button type="button" data-v="on">روشن</button><button type="button" data-v="off">فقط اعلان</button></div>
+      <label>پخش صدای اذان در وقت نماز</label>
+      <div class="seg" id="playSeg"><button type="button" data-v="on">روشن</button><button type="button" data-v="off">خاموش</button></div>
+      <label>اعلان دائمی تاریخ (بالای صفحه)</label>
+      <div class="seg" id="dateNotifSeg"><button type="button" data-v="on">روشن</button><button type="button" data-v="off">خاموش</button></div>
       <label>یادآوری قبل از وقت</label>
       <div class="seg" id="preSeg"><button type="button" data-v="0">ندارد</button><button type="button" data-v="10">۱۰ دقیقه</button><button type="button" data-v="20">۲۰ دقیقه</button><button type="button" data-v="30">۳۰ دقیقه</button></div>
       <label>اعلان طلوع آفتاب</label>
       <div class="seg" id="sunSeg"><button type="button" data-v="off">خاموش</button><button type="button" data-v="on">روشن</button></div>
-      <div class="row"><button id="testNotif" type="button" class="glass">اعلان آزمایشی (۵ ثانیه)</button></div>
+      <div class="row">
+        <button id="testNotif" type="button" class="glass">اعلان آزمایشی (۵ ثانیه)</button>
+        <button id="testAzan" type="button" class="glass">آزمایش صفحهٔ اذان (۸ ثانیه)</button>
+      </div>
+      <div class="row">
+        <button id="testDate" type="button" class="glass">روشن کردن اعلان دائمی</button>
+        <button id="openAppSettings" type="button" class="glass">تنظیمات اعلان برنامه</button>
+      </div>
       <p class="note" id="notifNote"></p>
+    </div>
+
+    <div class="glass card group">
+      <h3>وضعیت سیستم</h3>
+      <div id="sysBox" class="group"></div>
     </div>
 
     <div class="glass card group">
@@ -195,9 +276,35 @@
     </div>
 
     <div class="glass card group">
-      <h3>ظاهر و رفتار</h3>
+      <h3>ظاهر اختصاصی</h3>
+      <label>انتخاب تم</label>
+      <div class="themes" id="themeBox"></div>
+      <label>رنگ تأکید</label>
+      <div class="accents" id="accentBox"></div>
       <label>آسمان پس‌زمینه</label>
       <div class="seg" id="skySeg"><button type="button" data-v="auto">زنده</button><button type="button" data-v="night">شب</button><button type="button" data-v="day">روز</button></div>
+      <label>نوار تاریخ بالای صفحه</label>
+      <div class="seg" id="datebarSeg"><button type="button" data-v="on">نمایش</button><button type="button" data-v="off">پنهان</button></div>
+      <label>انیمیشن‌های پس‌زمینه (برای مصرف کمتر باتری خاموش کن)</label>
+      <div class="seg" id="animSeg"><button type="button" data-v="on">روشن</button><button type="button" data-v="off">خاموش</button></div>
+      <label>اندازهٔ متن عربی</label>
+      <div class="row"><button id="fsMinus" type="button" class="glass">کوچک‌تر</button><button id="fsPlus" type="button" class="glass">بزرگ‌تر</button></div>
+    </div>
+
+    <div class="glass card group">
+      <h3>ویجت صفحهٔ اصلی</h3>
+      <div id="widgetBox" class="group"></div>
+    </div>
+
+    <div class="glass card group">
+      <h3>نماز</h3>
+      <label>سورهٔ دوم در رکعت اول و دوم</label>
+      <select id="surahSel" class="field">
+        <option value="tawhid">سورهٔ توحید (اخلاص)</option>
+        <option value="kawthar">سورهٔ کوثر</option>
+        <option value="qadr">سورهٔ قدر</option>
+        <option value="asr">سورهٔ عصر</option>
+      </select>
       <label>پیشروی خودکار مراحل نماز</label>
       <div class="seg" id="autoSeg"><button type="button" data-v="on">روشن</button><button type="button" data-v="off">خاموش</button></div>
       <label>سرعت نماز (مدت هر مرحله)</label>
@@ -208,8 +315,6 @@
       <div class="seg" id="tqSeg"><button type="button" data-v="on">نمایش</button><button type="button" data-v="off">بدون تعقیبات</button></div>
       <label>لرزش</label>
       <div class="seg" id="vibSeg"><button type="button" data-v="on">روشن</button><button type="button" data-v="off">خاموش</button></div>
-      <label>اندازهٔ متن عربی</label>
-      <div class="row"><button id="fsMinus" type="button" class="glass">کوچک‌تر</button><button id="fsPlus" type="button" class="glass">بزرگ‌تر</button></div>
     </div>
 
     <div class="glass card group">
@@ -234,15 +339,15 @@
     <div class="glass card about">
       <img src="icon.svg" alt="" class="alogo">
       <b class="aname">نیاز</b>
-      <span class="muted">همراه هوشمند نماز · نسخهٔ ۲٫۰</span>
+      <span class="muted">همراه هوشمند نماز · نسخهٔ ۳٫۰</span>
       <div class="sign sm"><span class="signtxt">مجتبی میدانی</span><svg viewBox="0 0 220 24" aria-hidden="true"><path d="M4 16 C40 2 70 26 110 12 S180 6 216 14" fill="none" stroke="url(#sg)" stroke-width="2.4" stroke-linecap="round"/></svg></div>
-      <div class="seal" aria-hidden="true">میم</div>
+      <button class="chip" type="button" data-go="creator">دربارهٔ سازنده</button>
     </div>
   </section>
 
-  <!-- سازنده -->
+  <!-- ============ سازنده ============ -->
   <section id="creator" class="screen" hidden data-tab="creator">
-    <header class="top glass pill"><b>سازنده</b><span class="muted" id="cver"></span></header>
+    <header class="top glass pill"><button class="chip back" type="button" data-back="settings">بازگشت</button><b>سازنده</b><span class="muted" id="cver"></span></header>
     <div class="glass card creator">
       <img src="icon.svg" alt="" class="clogo" id="clogo">
       <h2 class="cname" id="cname"></h2>
@@ -260,7 +365,7 @@
     <p class="note">«نیاز» با دقت و حوصله ساخته شده تا نمازت با حضور قلب بیشتری همراه باشد.</p>
   </section>
 
-  <!-- موقعیت -->
+  <!-- ============ موقعیت ============ -->
   <section id="loc" class="screen" hidden>
     <header class="top glass pill"><button class="chip back" type="button">بازگشت</button><b>انتخاب موقعیت</b><span class="spacer"></span></header>
     <button id="gpsBtn" class="primary" type="button">استفاده از موقعیت دقیق من</button>
@@ -269,7 +374,7 @@
     <ul id="cityList" class="plist"></ul>
   </section>
 
-  <!-- نماز -->
+  <!-- ============ نماز ============ -->
   <section id="pray" class="screen full" hidden>
     <header class="top glass pill">
       <button id="exitBtn" class="chip" type="button">خروج</button>
@@ -280,7 +385,7 @@
     <div class="pose" id="pose"><img id="poseImg" alt="" hidden><span id="poseLabel"></span></div>
     <div class="zikr glass card" id="zikr">
       <div class="stepname" id="stepName"></div>
-      <div class="ar" id="arText" lang="ar" dir="rtl"></div>
+      <div id="arText"></div>
       <div class="fa" id="faText"></div>
       <div class="badges" id="badges"></div>
     </div>
@@ -290,7 +395,7 @@
     <div class="row"><button id="prevBtn" type="button" class="glass">قبلی</button><button id="autoBtn" type="button" class="glass" hidden></button></div>
   </section>
 
-  <!-- تعقیبات -->
+  <!-- ============ تعقیبات ============ -->
   <section id="taqib" class="screen full" hidden>
     <header class="top glass pill">
       <button id="skipBtn" class="chip" type="button">رد کردن</button>
@@ -308,7 +413,7 @@
     <div class="row"><button id="tqPrev" type="button" class="glass">قبلی</button></div>
   </section>
 
-  <!-- پایان -->
+  <!-- ============ پایان ============ -->
   <section id="end" class="screen" hidden>
     <div class="glass card endcard">
       <img src="icon.svg" alt="" class="alogo">
@@ -323,15 +428,45 @@
 
 <nav id="tabs" class="glass" aria-label="بخش‌ها">
   <button type="button" data-go="home" aria-label="خانه"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>خانه</span></button>
+  <button type="button" data-go="calendar" aria-label="تقویم"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4M7.5 13h3M13.5 13h3M7.5 17h3"/></svg><span>تقویم</span></button>
+  <button type="button" data-go="azan" aria-label="اذان"><svg viewBox="0 0 24 24"><path d="M5 21V11c0-3.4 3-6.4 7-8 4 1.6 7 4.6 7 8v10M5 21h14M5 17h14"/></svg><span>اذان</span></button>
   <button type="button" data-go="qibla" aria-label="قبله"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg><span>قبله</span></button>
-  <button type="button" data-go="azan" aria-label="اذان و اقامه"><svg viewBox="0 0 24 24"><path d="M4 20V10l4-3 4 3v10M12 20V8l4-5 4 5v12M2 20h20"/></svg><span>اذان</span></button>
   <button type="button" data-go="tasbih" aria-label="تسبیح"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="18" cy="9.5" r="2"/><circle cx="16" cy="17" r="2"/><circle cx="8" cy="17" r="2"/><circle cx="6" cy="9.5" r="2"/></svg><span>تسبیح</span></button>
   <button type="button" data-go="settings" aria-label="تنظیمات"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>تنظیمات</span></button>
-  <button type="button" data-go="creator" aria-label="سازنده"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span>سازنده</span></button>
 </nav>
+
+<!-- صفحهٔ اذان (بجای اعلان) -->
+<div id="adhanScreen" hidden role="dialog" aria-modal="true" aria-label="وقت اذان">
+  <span class="as-badge">وقت اذان رسید</span>
+  <div class="as-clock" id="asClock">--:--</div>
+  <div class="as-title" id="asTitle">وقت اذان</div>
+  <div class="as-sub" id="asSub"></div>
+  <div class="as-dates"><span id="asJ"></span><span id="asH"></span><span id="asG"></span></div>
+  <div class="as-occ" id="asOcc"></div>
+  <div class="as-moon" id="asMoon"></div>
+  <div class="as-barwrap"><i id="asBar"></i></div>
+  <div class="as-actions">
+    <button type="button" id="asPlay">▶ پخش اذان</button>
+    <button type="button" class="main" id="asPray">نماز می‌خوانم</button>
+    <div class="as-small">
+      <button type="button" id="asText">متن اذان و اقامه</button>
+      <button type="button" id="asCalendar">تقویم و مناسبت‌ها</button>
+    </div>
+    <button type="button" id="asClose">بستن صفحهٔ اذان</button>
+  </div>
+  <div class="as-ticker" id="asTicker"></div>
+</div>
+
+<!-- برگهٔ پایین صفحه -->
+<div id="sheet" hidden>
+  <div id="sheetBody"></div>
+</div>
 
 <canvas id="fx" aria-hidden="true"></canvas>
 <div id="toast" class="toast" role="status" hidden></div>
+<script src="cal.js"></script>
+<script src="content.js"></script>
+<script src="nat.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
