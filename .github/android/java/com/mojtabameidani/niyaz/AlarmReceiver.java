@@ -44,7 +44,31 @@ public class AlarmReceiver extends BroadcastReceiver {
             }
 
             if ("main".equals(kind)) {
-                boolean nativeAudio = playAdhan && ("azan".equals(sound) || "soft".equals(sound));
+                /* حالت پخش این نماز را خودِ برنامه تعیین می‌کند:
+                   azan = صدای اذان از سرویس · notif = اعلان با صدای پیش‌فرض گوشی ·
+                   silent = اعلان بی‌صدا (کاربر اذان این نماز را خاموش کرده). */
+                String itemSound = i.getStringExtra("sound");
+                if (itemSound != null && itemSound.length() > 0) sound = itemSound;
+                String mode = i.getStringExtra("mode");
+                if (mode == null || mode.length() == 0) {
+                    mode = "none".equals(sound) ? "silent"
+                            : ((playAdhan && ("azan".equals(sound) || "soft".equals(sound))) ? "azan" : "notif");
+                }
+                boolean wantsAzan = "azan".equals(mode) || "azan_snd".equals(mode);
+                boolean screen = wantsAzan && i.getBooleanExtra("screen", azanScreen);
+                if (!wantsAzan) {
+                    /* هیچ صدای اذانی پخش نمی‌شود؛ فقط اعلان (با صدا یا بی‌صدا) */
+                    JSONObject payload = new JSONObject();
+                    try {
+                        payload.put("k", k); payload.put("n", n);
+                        payload.put("title", title); payload.put("body", body); payload.put("at", at);
+                    } catch (Throwable ignored) { }
+                    Notifier.show(c, Notifier.ID_ADHAN, Notifier.prayerNotification(c,
+                            title, body, payload, null, mode, false));
+                    NiyazWidgetProvider.redraw(c);
+                    return;
+                }
+                boolean nativeAudio = true;
                 Intent svc = new Intent(c, AzanService.class);
                 svc.setAction(AzanService.ACTION_PLAY);
                 svc.putExtra("k", k);
@@ -53,8 +77,9 @@ public class AlarmReceiver extends BroadcastReceiver {
                 svc.putExtra("body", body);
                 svc.putExtra("at", at);
                 svc.putExtra("sound", "soft".equals(sound) ? "soft" : "azan");
-                svc.putExtra("screen", azanScreen);
+                svc.putExtra("screen", screen);
                 svc.putExtra("audio", nativeAudio);
+                svc.putExtra("mode", mode);
                 boolean started = false;
                 try {
                     if (Build.VERSION.SDK_INT >= 26) c.startForegroundService(svc);
@@ -69,7 +94,7 @@ public class AlarmReceiver extends BroadcastReceiver {
                     payload.put("k", k); payload.put("n", n); payload.put("title", title);
                     payload.put("body", body); payload.put("at", at);
                     Notifier.show(c, Notifier.ID_ADHAN, Notifier.prayerNotification(c,
-                            title, body, payload, true, null));
+                            title, body, payload, null, mode, false));
                 }
                 NiyazWidgetProvider.redraw(c);
                 return;

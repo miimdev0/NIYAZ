@@ -118,6 +118,7 @@ public class AzanService extends Service {
             o.put("sound", intent.getStringExtra("sound") != null ? intent.getStringExtra("sound") : "azan");
             o.put("screen", intent.getBooleanExtra("screen", true));
             o.put("audio", intent.getBooleanExtra("audio", true));
+            o.put("mode", intent.getStringExtra("mode") != null ? intent.getStringExtra("mode") : "azan");
         } catch (Throwable ignored) { }
         return o;
     }
@@ -127,9 +128,10 @@ public class AzanService extends Service {
             if (isDateEnabled()) {
                 startForeground(Notifier.ID_DATE, Notifier.dateNotification(this, dateInfo()));
             } else if (sessionInfo != null) {
+                String m = sessionInfo.optString("mode", "azan");
                 startForeground(Notifier.ID_ADHAN, Notifier.prayerNotification(this,
                         sessionInfo.optString("title"), sessionInfo.optString("body"), sessionInfo,
-                        !sessionInfo.optBoolean("audio", true), stopPending()));
+                        stopPending(), m, false));
             } else {
                 startForeground(Notifier.ID_DATE, Notifier.dateNotification(this, dateInfo()));
             }
@@ -162,9 +164,10 @@ public class AzanService extends Service {
     }
 
     private void postPrayerNotification(JSONObject info) {
-        boolean silent = info.optBoolean("audio", true);
+        String m = info.optString("mode", "azan");
+        boolean full = info.optBoolean("screen", true) && !"notif".equals(m) && !"silent".equals(m);
         android.app.Notification n = Notifier.prayerNotification(this,
-                info.optString("title"), info.optString("body"), info, !silent, stopPending());
+                info.optString("title"), info.optString("body"), info, stopPending(), m, full);
         if (isDateEnabled()) {
             Notifier.show(this, Notifier.ID_ADHAN, n);
         } else {
@@ -250,9 +253,12 @@ public class AzanService extends Service {
     /** اگر پخش نشد، اعلان با صدای خودش بیاید */
     private void fallbackSound() {
         if (sessionInfo == null) return;
+        String m = sessionInfo.optString("mode", "azan");
+        if (!"azan".equals(m)) return;            /* اذان خاموش یا اعلان معمولی: صدای اذان پخش نمی‌شود */
         try {
             android.app.Notification n = Notifier.prayerNotification(this,
-                    sessionInfo.optString("title"), sessionInfo.optString("body"), sessionInfo, true, stopPending());
+                    sessionInfo.optString("title"), sessionInfo.optString("body"), sessionInfo,
+                    stopPending(), "azan_snd", false);
             Notifier.show(this, Notifier.ID_ADHAN, n);
         } catch (Throwable ignored) { }
     }

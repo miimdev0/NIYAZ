@@ -73,6 +73,10 @@ public final class AlarmScheduler {
         i.putExtra("kind", item.optString("kind", "main"));
         i.putExtra("title", item.optString("title"));
         i.putExtra("body", item.optString("body"));
+        /* تنظیم «کدام اذان‌ها پخش شود» همراه خودِ هر آلارم می‌رود */
+        i.putExtra("sound", item.optString("sound", ""));
+        i.putExtra("silent", item.optBoolean("silent", false));
+        i.putExtra("screen", item.optBoolean("screen", true));
         int flags = PendingIntent.FLAG_UPDATE_CURRENT;
         if (Build.VERSION.SDK_INT >= 23) flags |= PendingIntent.FLAG_IMMUTABLE;
         return PendingIntent.getBroadcast(c, id, i, flags);

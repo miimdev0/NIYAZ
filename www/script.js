@@ -218,6 +218,11 @@
   function azanPlayOn(k) { return cfg.playAdhan === "on" && cfg.azanOn[k] !== "off" && cfg.snd !== "off"; }
   /* جمع خواندن: در مذهب شیعه ظهر و عصر و مغرب و عشا در یک وقت خوانده می‌شوند */
   function jamOn() { return cfg.jam === "on" ? true : (cfg.jam === "off" ? false : scheme === "shia"); }
+  /* حالت پخش هر نماز: azan = صدای اذان · notif = اعلان با صدای گوشی · silent = اعلان بی‌صدا */
+  function azanMode(k) {
+    if (azanPlayOn(k)) return cfg.snd === "default" ? "notif" : "azan";
+    return cfg.playAdhan === "off" ? "notif" : "silent";
+  }
   var loc = load("rk-loc", { label: "تهران", lat: 35.6892, lng: 51.389, tz: "Asia/Tehran" });
   var scheme = load("rk-scheme", "shia");
   var sess = load("rk-sess", null);
@@ -433,7 +438,7 @@
     pendingQaza().forEach(function (q) { qz[q.k] = (qz[q.k] || 0) + 1; });
     var jamSecond = C.chosenKeys.length > 1 ? C.chosenKeys[1] : "";
     P.forEach(function (p) {
-      var inWin = C.chosenKeys.indexOf(p.k) >= 0;
+      var inWin = !!C.cur && C.chosenKeys.indexOf(p.k) >= 0;   /* فقط پنجرهٔ همین حالا */
       var cls = inWin ? (p.k === C.cur ? "cur" : "cur2") : (t[p.k] < z.h ? "past" : "");
       html += '<li class="' + cls + '"><button type="button" data-k="' + p.k + '"><span>' + p.n + '<span class="r">' + f(p.r) +
         " رکعت</span>" + (jamSecond === p.k && C.cur ? '<span class="r"> · با ' + PN[C.cur] + "</span>" : "") +
@@ -923,7 +928,9 @@
       var z = zoneNow(loc.tz, new Date(now + d * 86400000)), t = times(z, loc.lat, loc.lng), base = d * 40;
       P.forEach(function (p, i) {
         var at = absTime(z, t[p.k]);
-        list.push({ id: base + i + 1, at: at, kind: "main", k: p.k, n: p.n, sound: azanPlayOn(p.k) ? cfg.snd : "default", title: "وقت نماز " + p.n, body: "اذان " + p.n + " · " + hhmm(t[p.k]) + " · " + loc.label });
+        var md = azanMode(p.k);
+        list.push({ id: base + i + 1, at: at, kind: "main", k: p.k, n: p.n,
+          sound: md === "azan" ? cfg.snd : (md === "notif" ? "default" : "none"), title: "وقت نماز " + p.n, body: "اذان " + p.n + " · " + hhmm(t[p.k]) + " · " + loc.label });
         if (pre) list.push({ id: base + i + 11, at: at - pre * 60000, kind: "pre", k: p.k, n: p.n, sound: "soft", title: f(pre) + " دقیقه تا نماز " + p.n, body: "آمادهٔ نماز شو · " + hhmm(t[p.k]) });
         if (iq) list.push({ id: base + i + 21, at: at + iq * 60000, kind: "iq", k: p.k, n: p.n, sound: "soft", title: "اقامهٔ نماز " + p.n, body: "قد قامت الصلاة · " + hhmm(t[p.k] + iq / 60) });
       });
@@ -937,7 +944,10 @@
       var z = zoneNow(loc.tz, new Date(now + d * 86400000)), t = times(z, loc.lat, loc.lng);
       P.forEach(function (p) {
         var at = absTime(z, t[p.k]);
-        list.push({ at: at, k: p.k, n: p.n, kind: "main", sound: azanPlayOn(p.k) ? cfg.snd : "default", title: "وقت اذان " + p.n, body: "اذان " + p.n + " · " + hhmm(t[p.k]) + " · " + loc.label });
+        /* حالت پخش این نماز همراه خودِ آلارم می‌رود تا اندروید همان را اجرا کند */
+        var md = azanMode(p.k);
+        list.push({ at: at, k: p.k, n: p.n, kind: "main", sound: cfg.snd, mode: md, silent: md === "silent",
+          screen: md === "azan" && cfg.azanScreen === "on", title: "وقت اذان " + p.n, body: "اذان " + p.n + " · " + hhmm(t[p.k]) + " · " + loc.label });
         if (pre) list.push({ at: at - pre * 60000, k: p.k, n: p.n, kind: "pre", sound: "soft", title: f(pre) + " دقیقه تا نماز " + p.n, body: "آمادهٔ نماز شو · " + hhmm(t[p.k]) });
         if (iq) list.push({ at: at + iq * 60000, k: p.k, n: p.n, kind: "iq", sound: "soft", title: "اقامهٔ نماز " + p.n, body: "قد قامت الصلاة · " + hhmm(t[p.k] + iq / 60) });
       });
@@ -1024,6 +1034,7 @@
     });
   }
   var LN_CH = [
+    { id: "silent_v1", name: "اعلان بی‌صدا", sound: "", importance: 3 },
     { id: "azan_v1", name: "اذان", sound: "azan" },
     { id: "soft_v1", name: "یادآوری ملایم", sound: "soft" },
     { id: "default_v1", name: "اعلان‌های نیاز", sound: "" }
@@ -1033,7 +1044,7 @@
     var chain = Promise.resolve();
     LN_CH.forEach(function (c) {
       chain = chain.then(function () {
-        var o = { id: c.id, name: c.name, description: "اعلان‌های نیاز", importance: 5, visibility: 1, vibration: true, lights: true };
+        var o = { id: c.id, name: c.name, description: "اعلان‌های نیاز", importance: c.importance || 5, visibility: 1, vibration: true, lights: true };
         if (c.sound) o.sound = c.sound;
         return ln.createChannel(o);
       }).catch(function () { });
@@ -1054,7 +1065,7 @@
         var list = buildList().map(function (n) {
           var o = {
             id: n.id, title: n.title, body: n.body,
-            channelId: n.sound === "azan" ? "azan_v1" : (n.sound === "default" ? "default_v1" : "soft_v1"),
+            channelId: n.sound === "azan" ? "azan_v1" : (n.sound === "none" ? "silent_v1" : (n.sound === "default" ? "default_v1" : "soft_v1")),
             schedule: { at: new Date(n.at), allowWhileIdle: true }
           };
           return o;
@@ -1104,7 +1115,7 @@
       var d = C.z.h - C.t[p.k], key = dayKey(C.z) + p.k;
       if (d >= 0 && d < 0.02 && lastAlert !== key) {
         lastAlert = key; save("rk-alerted", key);
-        if (cfg.azanScreen === "on" && C.cur === p.k) openAdhanScreen(p.k);
+        if (cfg.azanScreen === "on" && azanPlayOn(p.k) && C.cur === p.k) openAdhanScreen(p.k);
         else { toast("وقت نماز " + p.n + " شد"); if (azanPlayOn(p.k)) alertSound(); buzz([200, 100, 200]); }
         try { if (window.Notification && Notification.permission === "granted") new Notification("وقت نماز " + p.n); } catch (e) { }
       }
@@ -1679,7 +1690,7 @@
     } else cfg.azanOn[k] = cfg.azanOn[k] === "off" ? "on" : "off";
     saveCfg(); renderAzanPick(); reschedule();
     var off = P.filter(function (p) { return cfg.azanOn[p.k] === "off"; }).map(function (p) { return "اذان " + p.n; });
-    toast(off.length ? "صدای اذان خاموش شد: " + off.join("، ") : "صدای اذان همهٔ نمازها روشن است");
+    toast(off.length ? "خاموش شد (بدون صدا و بدون صفحهٔ اذان): " + off.join("، ") : "اذان همهٔ نمازها با صدا پخش می‌شود");
   };
   seg("jamSeg", "jam", function () {
     renderHome(); reschedule();

@@ -181,21 +181,45 @@ public final class Notifier {
 
     /** اعلان وقت نماز با صفحهٔ تمام‌صفحه */
     public static Notification prayerNotification(Context c, String title, String body, JSONObject payload, boolean playSound, PendingIntent stopAction) {
+        return prayerNotification(c, title, body, payload, playSound, stopAction, true);
+    }
+
+    /**
+     * نسخهٔ کامل.
+     * fullScreen=false یعنی هیچ صفحه‌ای خودکار باز نشود؛ برای اذان‌هایی که کاربر
+     * در تنظیمات «کدام اذان‌ها پخش شود» خاموش کرده است (اعلان می‌آید، صدا نه).
+     */
+    public static Notification prayerNotification(Context c, String title, String body, JSONObject payload, boolean playSound, PendingIntent stopAction, boolean fullScreen) {
+        return prayerNotification(c, title, body, payload, stopAction, playSound ? "azan_snd" : "silent", fullScreen);
+    }
+
+    /**
+     * حالت‌های پخش:
+     *   azan      → صدای اذان را خودِ سرویس پخش می‌کند، اعلان بی‌صدا است
+     *   azan_snd  → همان اذان، ولی از روی کانال اعلان (پشتیبان وقتی فایل پخش نشد)
+     *   notif     → بدون اذان، اعلان با صدای پیش‌فرض گوشی
+     *   silent    → بدون اذان، اعلان بی‌صدا (کاربر اذان این نماز را خاموش کرده)
+     */
+    public static Notification prayerNotification(Context c, String title, String body, JSONObject payload, PendingIntent stopAction, String mode, boolean fullScreen) {
         ensureChannels(c);
-        String channel = playSound ? C_ADHAN_SND : C_ADHAN;
+        if (mode == null || mode.length() == 0) mode = "azan";
+        if ("silent".equals(mode) || "notif".equals(mode) || "azan_snd".equals(mode)) fullScreen = false;
+        boolean playSound = "azan_snd".equals(mode);
+        String channel = "azan_snd".equals(mode) ? C_ADHAN_SND : ("notif".equals(mode) ? C_DEFAULT : C_ADHAN);
         NotificationCompat.Builder b = new NotificationCompat.Builder(c, channel)
                 .setSmallIcon(R.drawable.ic_stat_niyaz)
                 .setContentTitle(title)
                 .setContentText(body)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
-                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setPriority(fullScreen ? NotificationCompat.PRIORITY_MAX : NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setAutoCancel(true)
                 .setShowWhen(true)
                 .setWhen(payload != null ? payload.optLong("at", System.currentTimeMillis()) : System.currentTimeMillis())
-                .setContentIntent(azanScreen(c, payload))
-                .setFullScreenIntent(azanScreen(c, payload), true);
+                .setContentIntent(fullScreen ? azanScreen(c, payload) : openApp(c));
+        if (!playSound) b.setSilent(true);          /* اعلان بی‌صدا روی همهٔ نسخه‌های اندروید */
+        if (fullScreen) b.setFullScreenIntent(azanScreen(c, payload), true);
         if (stopAction != null) {
             b.addAction(android.R.drawable.ic_media_pause, "قطع اذان", stopAction);
         }
