@@ -202,13 +202,42 @@
   var P = CONTENT.PRAYERS;
   function pr(k) { return P.filter(function (p) { return p.k === k; })[0]; }
   var zero5 = function () { return { fajr: 0, zuhr: 0, asr: 0, maghrib: 0, isha: 0 }; };
+  var VERSION = "3.1";
+  var CHANGES = [
+    "🔐 قفل ورود با رمز چهاررقمی (با هش SHA-256) + قفل خودکار و «قفل همین حالا»",
+    "🕶 حریم خصوصی: مخفی‌کردن محتوای اعلان‌ها روی صفحهٔ قفل گوشی",
+    "💾 خروجی و بازگرداندن همهٔ داده‌ها (اوقات، سابقه، قضا، تنظیمات) + پاک‌کردن کامل",
+    "🩺 «سلامت برنامه»: بررسی خودکار اعلان، آلارم دقیق، صدا، فونت، تقویم و ذخیره‌سازی",
+    "🔔 انتخاب اذان‌ها با وضعیت روشن/بی‌صدا و دکمهٔ «امتحان» برای شنیدن همان اذان",
+    "🎨 حلقهٔ گرافیکی تازه: تیک‌های اوقات، سرِ نورانی متحرک و رنگ اختصاصی هر نماز",
+    "✨ جشن «تقبل الله» بعد از ثبت نماز + ورود پله‌ای کارت‌ها",
+    "📤 «خلاصهٔ هفتهٔ من» برای اشتراک‌گذاری + گزارش خطای محلی (بدون ارسال به اینترنت)",
+    "📝 ورقهٔ «تازه‌های این نسخه» و بهبود دسترس‌پذیری (خواننده‌ی صفحه)"
+  ];
   var DEFAULTS = {
     sky: "auto", tap: "step", tq: "on", notif: "off", pre: "0", sun: "off", vib: "on",
     fs: 26, method: "auto", asr: "1", snd: "azan", iq: "0", auto: "on", spd: "normal",
     adj: zero5(), qaza: zero5(), imgs: {}, theme: "midnight", accent: "", surah: "tawhid",
     datebar: "on", notifDate: "on", azanScreen: "on", playAdhan: "on", calView: "j", jam: "auto",
+    lock: "off", lockDelay: "1", priv: "full",
     filters: { "ملی": true, "مذهبی": true, "جهانی": true, "فرهنگی": true }, anim: "on", bigtext: "on"
   };
+  /* ---- گزارش خطای محلی: هیچ‌چیز به اینترنت فرستاده نمی‌شود ---- */
+  var ERRS = load("rk-errs", []);
+  function logErr(what) {
+    try {
+      var m = String(what || "").slice(0, 200);
+      if (!m || /ResizeObserver|Non-Error|Not implemented|Script error/i.test(m)) return;
+      ERRS.push({ t: Date.now(), m: m });
+      if (ERRS.length > 20) ERRS = ERRS.slice(-20);
+      save("rk-errs", ERRS);
+      var el = $("errLog");
+      if (el) renderErrLog();
+    } catch (e) { }
+  }
+  window.addEventListener("error", function (e) { logErr((e && (e.message || (e.error && e.error.message))) || "خطای نامشخص"); });
+  window.addEventListener("unhandledrejection", function (e) { logErr((e && e.reason && (e.reason.message || e.reason)) || "وعدهٔ ناموفق"); });
+
   var cfg = Object.assign({}, DEFAULTS, load("rk-cfg", {}), load("rk-cfg3", {}));
   cfg.adj = Object.assign(zero5(), cfg.adj);
   cfg.qaza = Object.assign(zero5(), cfg.qaza);
@@ -218,6 +247,9 @@
   function azanPlayOn(k) { return cfg.playAdhan === "on" && cfg.azanOn[k] !== "off" && cfg.snd !== "off"; }
   /* جمع خواندن: در مذهب شیعه ظهر و عصر و مغرب و عشا در یک وقت خوانده می‌شوند */
   function jamOn() { return cfg.jam === "on" ? true : (cfg.jam === "off" ? false : scheme === "shia"); }
+  /* رنگ اختصاصی هر وقت نماز برای حلقه و نشانگرها */
+  var WIN_C = { fajr: "#7fd0ff", zuhr: "#f4c25b", asr: "#ffab5b", maghrib: "#ff8f6b", isha: "#a9b7ff" };
+  function winColor(k) { return WIN_C[k] || "var(--gold)"; }
   /* حالت پخش هر نماز: azan = صدای اذان · notif = اعلان با صدای گوشی · silent = اعلان بی‌صدا */
   function azanMode(k) {
     if (azanPlayOn(k)) return cfg.snd === "default" ? "notif" : "azan";
@@ -231,7 +263,93 @@
   function saveCfg() { save("rk-cfg3", cfg); }
   function buzz(p) { if (cfg.vib !== "on") return; try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { } }
 
-  /* ================= محاسبهٔ اوقات ================= */
+  /* ================= قفل ورود ================= */
+  var PIN = load("rk-pin", { hash: "", salt: "" });
+  var locked = false, lockWasOn = false, hideAt = 0, pinBuf = "";
+  function pinHash(pin, salt, cb) {
+    var txt = "niyaz|" + salt + "|" + pin + "|meidani";
+    try {
+      if (window.crypto && crypto.subtle && crypto.subtle.digest) {
+        crypto.subtle.digest("SHA-256", new TextEncoder().encode(txt)).then(function (buf) {
+          var a = new Uint8Array(buf), h = "";
+          for (var i = 0; i < a.length; i++) h += ("0" + a[i].toString(16)).slice(-2);
+          cb(h);
+        }).catch(function () { cb(fnv(txt)); });
+        return;
+      }
+    } catch (e) { }
+    cb(fnv(txt));
+  }
+  function fnv(str) {                     /* پشتیبان (jsdom یا مرورگر قدیمی) — ۵۰۰۰ دور کشیدن */
+    var h = 0x811c9dc5, out = "", round = 0, i;
+    while (round < 5000) {
+      for (i = 0; i < str.length; i++) { h ^= str.charCodeAt(i) + round; h = (h * 0x01000193) >>> 0; }
+      h ^= h >>> 13; h = (h * 0x85ebca6b) >>> 0;
+      round++;
+    }
+    out = h.toString(16);
+    for (i = 0; i < 7; i++) { h = (h * 0x01000193 ^ 0x9e3779b9) >>> 0; out += h.toString(16); }
+    return "x" + out.slice(0, 40);
+  }
+  function lockReady() { return cfg.lock === "on" && !!PIN.hash; }
+  function lockDots(bad) {
+    var box = $("lockDots"); if (!box) return;
+    var n = pinBuf.length;
+    Array.prototype.forEach.call(box.children, function (d, i) { d.className = i < n ? "on" : ""; });
+    box.className = "dots" + (bad ? " bad" : "");
+  }
+  function showLock(msg) {
+    if (!lockReady()) return;
+    locked = true;
+    pinBuf = "";
+    $("lockMsg").textContent = msg || "رمز چهاررقمی را بزن";
+    lockDots(false);
+    $("lockScr").hidden = false;
+    document.body.classList.add("locked");
+  }
+  function hideLock() {
+    locked = false; pinBuf = "";
+    $("lockScr").hidden = true;
+    document.body.classList.remove("locked");
+  }
+  var lockFails = 0, lockUntil = 0;
+  function lockTry() {
+    if (Date.now() < lockUntil) {
+      pinBuf = ""; lockDots(false);
+      $("lockMsg").textContent = "کمی صبر کن؛ " + f(Math.ceil((lockUntil - Date.now()) / 1000)) + " ثانیه";
+      return;
+    }
+    var guess = pinBuf;
+    pinHash(guess, PIN.salt, function (h) {
+      if (h === PIN.hash) {
+        lockFails = 0; lockUntil = 0;
+        hideLock(); buzz(20); toast("خوش آمدی 🤲");
+        if (!splashGone) hideSplash();
+      } else {
+        lockFails++;
+        lockDots(true); buzz([60, 40, 60]);
+        pinBuf = "";
+        var msg = lockFails >= 5 ? "۵ تلاش ناموفق بود." : "رمز درست نبود؛ دوباره بزن";
+        if (lockFails >= 5) {
+          lockUntil = Date.now() + 30000; lockFails = 0;
+          msg += " تا ۳۰ ثانیه دیگر صبر کن.";
+        }
+        setTimeout(function () { lockDots(false); $("lockMsg").textContent = msg; }, 650);
+      }
+    });
+  }
+  function savePin(v) {
+    var salt = String(Date.now()) + Math.random().toString(16).slice(2, 8);
+    pinHash(v, salt, function (h) { PIN = { hash: h, salt: salt }; save("rk-pin", PIN); });
+  }
+  function lockNote() {
+    var el = $("lockNote"); if (!el) return;
+    el.textContent = lockReady()
+      ? "قفل روشن است؛ " + (cfg.lockDelay === "0" ? "به‌محض رفتن به پس‌زمینه قفل می‌شود." : "بعد از " + f(+cfg.lockDelay || 1) + " دقیقه در پس‌زمینه قفل می‌شود.") + " با «قفل همین حالا» هم می‌توانی فوری قفل کنی."
+      : "برای روشن‌کردن قفل، یک رمز چهاررقمی انتخاب کن. رمز فقط به‌صورت هش‌شده روی همین گوشی ذخیره می‌شود.";
+    var st = $("lockSetup");
+    if (st) st.hidden = !(cfg.lock === "on" && !PIN.hash);
+  }
   var _dtfCache = {};
   function dtfFor(tz) {
     var key = tz || "local", f = _dtfCache[key];
@@ -494,8 +612,10 @@
     }
     setT($("count"), hms(secs));
     setT($("clock"), hhmm(z.h));
-    var off = (CIRC * (1 - Math.max(0, Math.min(1, prog)))).toFixed(1);
-    if (off !== lastRing) { lastRing = off; $("rprog").style.strokeDashoffset = off; }
+    var pnow = Math.max(0, Math.min(1, prog));
+    var off = (CIRC * (1 - pnow)).toFixed(1);
+    if (off !== lastRing) { lastRing = off; $("rprog").style.strokeDashoffset = off; placeTip(pnow); }
+    renderTicks(C.cur || C.next);
     setT($("startBtn"), "شروع نماز " + pr(C.cur || C.next).n);
     var b2 = $("startBtn2");
     if (b2) {
@@ -506,7 +626,12 @@
     }
     tickDateBar();
     var mk = Math.floor(C.z.h * 60);              /* تغییر دقیقه: تازه‌سازی سنگین */
-    if (mk !== lastTickMin) { lastTickMin = mk; drawArc(); renderMiniTimes(); }
+    if (mk !== lastTickMin) {
+      lastTickMin = mk; drawArc(); renderMiniTimes();
+      /* نوار خواننده‌ی صفحه: هر دقیقه یک جملهٔ کوتاه */
+      setT($("srStatus"), (C.cur && !doneCur ? "وقت نماز " + pr(C.cur).n + " است. " : "نماز بعدی " + pr(C.next).n + ". ") +
+        minutesText((C.cur && !doneCur ? C.left : C.wait) * 60) + " مانده.");
+    }
     renderTL(mode);
   }
 
@@ -659,6 +784,43 @@
     ul.innerHTML = h;
   }
 
+  /* تیک‌های گرافیکی روی حلقه + رنگ اختصاصی وقت فعلی */
+  var lastTickSet = "";
+  function renderTicks(colorKey) {
+    var g = $("rticks"); if (!g) return;
+    if (lastTickSet === colorKey) return;
+    lastTickSet = colorKey;
+    var h = "", i, a, r1, r2, x1, y1, x2, y2;
+    for (i = 0; i < 24; i++) {
+      a = i * 15 * Math.PI / 180;
+      var major = i % 6 === 0;
+      r1 = major ? 78 : 84; r2 = 90;
+      x1 = 100 + r1 * Math.cos(a); y1 = 100 + r1 * Math.sin(a);
+      x2 = 100 + r2 * Math.cos(a); y2 = 100 + r2 * Math.sin(a);
+      h += '<line class="rtick' + (major ? " on" : "") + '" x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) +
+        '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '"/>';
+    }
+    g.innerHTML = h;
+    var root = $("rprog");
+    if (root) root.style.stroke = winColor(colorKey);
+    document.documentElement.style.setProperty("--win", winColor(colorKey));
+  }
+  function placeTip(prog) {
+    var tip = $("rtip"); if (!tip) return;
+    var a = Math.max(0, Math.min(1, prog)) * 2 * Math.PI;
+    tip.setAttribute("cx", (100 + 90 * Math.cos(a)).toFixed(1));
+    tip.setAttribute("cy", (100 + 90 * Math.sin(a)).toFixed(1));
+    tip.setAttribute("fill", winColor(C ? (C.cur || C.next) : "zuhr"));
+  }
+  function celebrate() {
+    if (cfg.anim === "off") return;
+    try {
+      confetti();
+      var r = $("rprog");
+      if (r) { r.classList.add("pulse"); setTimeout(function () { r.classList.remove("pulse"); }, 5200); }
+      buzz([40, 30, 40]);
+    } catch (e) { }
+  }
   var lastArcKey = "";
   function drawArc() {
     var t = C.t, h = C.z.h, W = 320;
@@ -1009,6 +1171,7 @@
     var cfgJson = {
       enabled: true, sound: cfg.snd, pre: +cfg.pre || 0, iq: +cfg.iq || 0, sun: cfg.sun === "on",
       playAdhan: cfg.playAdhan === "on", azanScreen: cfg.azanScreen === "on", notifyDate: cfg.notifDate === "on",
+      privHide: cfg.priv === "hide",
       label: loc.label, items: buildNativeSchedule()
     };
     NZ.nat.setConfig(cfgJson);
@@ -1230,7 +1393,7 @@
     if (tab !== "azan" && playing) stopSound();
     if (tab === "azan") renderAzan();
     if (tab === "tasbih") { drawTb(); renderDuaList(); }
-    if (tab === "settings") { applyCfg(); buildAdj(); renderStats(); renderThemeBox(); renderSysBox(); renderWidgetBox(); }
+    if (tab === "settings") { applyCfg(); buildAdj(); renderStats(); renderThemeBox(); renderSysBox(); renderWidgetBox(); refreshHealth(); renderErrLog(); }
     if (tab === "creator") renderCreator();
   }
 
@@ -1370,6 +1533,7 @@
       if (log[key].indexOf(sess.k) < 0) log[key].push(sess.k);
       save("rk-log", log);
     }
+    celebrate();
     if (cfg.tq === "on") { sess = { t: "q", k: sess.k, i: 0, c: 0 }; save("rk-sess", sess); renderTq(); }
     else endAll("نمازت ثبت شد.");
   }
@@ -1443,12 +1607,13 @@
     var segs = [["skySeg", "sky"], ["tapSeg", "tap"], ["tqSeg", "tq"], ["notifSeg", "notif"], ["preSeg", "pre"], ["sunSeg", "sun"],
       ["vibSeg", "vib"], ["asrSeg", "asr"], ["sndSeg", "snd"], ["iqSeg", "iq"], ["autoSeg", "auto"], ["spdSeg", "spd"],
       ["azanSeg", "azanScreen"], ["playSeg", "playAdhan"], ["dateNotifSeg", "notifDate"], ["datebarSeg", "datebar"], ["animSeg", "anim"],
-      ["jamSeg", "jam"]];
+      ["jamSeg", "jam"], ["lockSeg", "lock"], ["lockDelaySeg", "lockDelay"], ["privSeg", "priv"]];
     segs.forEach(function (x) {
       var box = $(x[0]); if (!box) return;
       all("#" + x[0] + " button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.v === String(cfg[x[1]])); });
     });
     renderAzanPick();
+    lockNote();
     if ($("methodSel")) $("methodSel").value = cfg.method;
     if ($("surahSel")) $("surahSel").value = cfg.surah;
     all(".field.img").forEach(function (i) { i.value = (cfg.imgs && cfg.imgs[i.dataset.p]) || ""; });
@@ -1476,6 +1641,106 @@
       stepper(q, cfg.qaza, p.k, p.n, function (v) { return f(v); }, 0, 9999);
     });
   }
+  /* ================= داده‌های من: خروجی، بازگرداندن، پاک‌کردن ================= */
+  function dumpData() {
+    var d = {}, i, k;
+    for (i = 0; i < localStorage.length; i++) {
+      k = localStorage.key(i);
+      if (k && k.indexOf("rk-") === 0) d[k] = localStorage.getItem(k);
+    }
+    return JSON.stringify({ app: "niyaz", version: VERSION, at: Date.now(), data: d });
+  }
+  function backupOut() {
+    var txt = dumpData(), ta = $("backupText");
+    if (ta) { ta.value = txt; ta.select && ta.select(); }
+    copyText(txt, "پشتیبان ساخته شد (" + f(Math.round(txt.length / 1024)) + " کیلوبایت) و رونوشت شد");
+  }
+  function backupIn() {
+    var ta = $("backupText"), raw = ta ? ta.value.trim() : "";
+    if (!raw) { toast("اول متن پشتیبان را در کادر بچسبان"); return; }
+    try {
+      var o = JSON.parse(raw);
+      if (!o || !o.data) throw new Error("bad");
+      var n = 0;
+      Object.keys(o.data).forEach(function (k) {
+        if (k.indexOf("rk-") !== 0) return;
+        try { localStorage.setItem(k, String(o.data[k])); n++; } catch (e) { }
+      });
+      toast(f(n) + " کلید بازگردانده شد؛ برنامه دوباره باز می‌شود");
+      setTimeout(function () { try { location.reload(); } catch (e) { } }, 900);
+    } catch (e) { toast("این متن پشتیبان معتبر نیست"); }
+  }
+  var wipeArmed = 0;
+  function wipeAll(btn) {
+    if (!wipeArmed) {
+      wipeArmed = Date.now();
+      btn.textContent = "مطمئنی؟ دوباره بزن";
+      toast("با این کار سابقه، قضا و تنظیمات پاک می‌شود");
+      return;
+    }
+    var keys = [];
+    for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf("rk-") === 0) keys.push(k); }
+    keys.forEach(function (k) { try { localStorage.removeItem(k); } catch (e) { } });
+    toast("همهٔ داده‌های نیاز پاک شد");
+    setTimeout(function () { try { location.reload(); } catch (e) { } }, 800);
+  }
+  function copyText(txt, okMsg) {
+    function done() { toast(okMsg || "رونوشت شد"); }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, done);
+      else {
+        var ta = document.createElement("textarea");
+        ta.value = txt; document.body.appendChild(ta); ta.select();
+        document.execCommand("copy"); document.body.removeChild(ta); done();
+      }
+    } catch (e) { toast("رونوشت نشد؛ دستی انتخاب کن"); }
+  }
+  function weekText() {
+    var w = [], total = 0, full = 0, jdn = jdnNow(), i, d, n;
+    for (i = 6; i >= 0; i--) {
+      d = dayInfoOf(jdn - i); n = (log[dayKeyOfJdn(jdn - i)] || []).length;
+      total += n; if (n >= 5) full++;
+      w.push(d.weekday.slice(0, 3) + " " + f(d.j.d) + ": " + f(n) + "/۵");
+    }
+    var pend = pendingQaza().length;
+    return "خلاصهٔ هفتهٔ من — نیاز\n" +
+      w.join("\n") + "\n" +
+      "جمع: " + f(total) + " از ۳۵ نماز · روزهای کامل: " + f(full) + "\n" +
+      (pend ? "قضای باقی‌مانده: " + f(pend) + "\n" : "قضایی ثبت نشده 🌱\n") +
+      "نیاز · همراه هوشمند نماز (" + loc.label + ")";
+  }
+  function shareWeek() {
+    var txt = weekText();
+    try {
+      if (navigator.share) { navigator.share({ title: "خلاصهٔ هفتهٔ من", text: txt }).catch(function () { copyText(txt, "خلاصهٔ هفته رونوشت شد"); }); return; }
+    } catch (e) { }
+    copyText(txt, "خلاصهٔ هفته رونوشت شد");
+  }
+  function renderErrLog() {
+    var el = $("errLog"); if (!el) return;
+    if (!ERRS.length) { el.textContent = ""; return; }
+    var last = ERRS[ERRS.length - 1];
+    el.textContent = "آخرین خطای ثبت‌شده (" + f(ERRS.length) + " مورد): " + new Date(last.t).toLocaleString("fa-IR") + " — " + last.m;
+  }
+
+  /* ================= تازه‌های نسخه ================= */
+  function showChanges(force) {
+    if ($("lockScr") && !$("lockScr").hidden) return;      /* وقتی قفل است مزاحم نشو */
+    var h = '<h3 style="margin:0 0 10px">تازه‌های نسخهٔ ' + VERSION + '</h3><ul class="chg">';
+    CHANGES.forEach(function (c) { h += "<li>" + c + "</li>"; });
+    h += '</ul><div class="row" style="margin-top:12px"><button type="button" class="glass" id="chgOk">فهمیدم</button></div>';
+    var body = $("sheetBody");
+    body.innerHTML = h;
+    showSheet(true);
+    $("chgOk").onclick = function () { showSheet(false); };
+    save("rk-ver", VERSION);
+    if (force) buzz(15);
+  }
+  function maybeShowChanges() {
+    if (load("rk-ver", "") === VERSION) return;
+    setTimeout(function () { showChanges(false); }, 1400);
+  }
+
   function renderStats() {
     var days = Object.keys(log), total = 0, full = 0;
     days.forEach(function (d) { total += log[d].length; if (log[d].length >= 5) full++; });
@@ -1504,13 +1769,97 @@
   }
   var AZ_ICON = { fajr: "🌄", zuhr: "☀️", asr: "🌤", maghrib: "🌇", isha: "🌙" };
   /* تنظیمات › کدام اذان‌ها پخش شود */
+  /* تنظیمات › کدام اذان‌ها پخش شود (با وضعیت روشن و دکمهٔ امتحان) */
   function renderAzanPick() {
     var box = $("azanPickBox"); if (!box) return;
     var allOn = P.every(function (p) { return cfg.azanOn[p.k] !== "off"; });
-    box.innerHTML = P.map(function (p) {
-      return '<button type="button" data-az="' + p.k + '" aria-pressed="' + (cfg.azanOn[p.k] !== "off") + '"><i>' + AZ_ICON[p.k] +
-        "</i>اذان " + p.n + "</button>";
-    }).join("") + '<button type="button" data-az="__all" aria-pressed="' + allOn + '"><i>🔔</i>' + (allOn ? "همه خاموش" : "همه روشن") + "</button>";
+    var h = "";
+    P.forEach(function (p) {
+      var md = azanMode(p.k), on = md === "azan";
+      var st = on ? (cfg.snd === "azan" ? "با صدای اذان" : "با صدای ملایم") : (md === "notif" ? "فقط اعلان گوشی" : "بی‌صدا");
+      h += '<div class="azrow"><button type="button" class="aztog' + (on ? "" : " off") + '" data-az="' + p.k + '" data-mode="' + md +
+        '" aria-pressed="' + on + '"><i>' + AZ_ICON[p.k] + "</i><b>اذان " + p.n + "</b><em>" + st + "</em>" +
+        '<span class="sw" aria-hidden="true"></span></button>' +
+        '<button type="button" class="aztest" data-test="' + p.k + '">▶ امتحان</button></div>';
+    });
+    h += '<div class="azrow"><button type="button" class="aztog" data-az="__all" aria-pressed="' + (allOn ? "true" : "false") +
+      '"><i>🔔</i><b>' + (allOn ? "خاموش‌کردن همه" : "روشن‌کردن همه") + "</b><em>یک‌جا</em></button></div>";
+    box.innerHTML = h;
+    var sum = $("azanSummary");
+    if (sum) {
+      var offs = P.filter(function (p) { return azanMode(p.k) !== "azan"; });
+      sum.textContent = offs.length
+        ? "در این نمازها اذان پخش نمی‌شود: " + offs.map(function (p) { return p.n; }).join("، ")
+        : "همهٔ پنج نماز با صدای اذان پخش می‌شوند.";
+    }
+  }
+  /* شنیدن همان چیزی که در وقت نماز پخش می‌شود */
+  var testingAz = "";
+  function testAzan(k) {
+    var md = azanMode(k), nm = pr(k).n;
+    if (testingAz === k) { stopSound(); testingAz = ""; toast("امتحان اذان " + nm + " قطع شد"); return; }
+    if (md === "azan") {
+      testingAz = k;
+      toast("در وقت اذان " + nm + ": صدای اذان + صفحهٔ اذان");
+      playSound(cfg.snd, function (ok) {
+        testingAz = "";
+        if (!ok) { beep(); toast("فایل صدا پیدا نشد؛ همان اعلان پخش شد."); }
+      });
+    } else if (md === "notif") {
+      beep();
+      toast("در وقت اذان " + nm + ": فقط اعلان با صدای پیش‌فرض گوشی (بدون اذان و بدون صفحه)");
+    } else {
+      buzz([30, 40, 30]);
+      toast("اذان " + nm + " خاموش است: هیچ صدایی پخش نمی‌شود و فقط اعلان بی‌صدا می‌آید");
+    }
+  }
+
+  /* ================= سلامت برنامه (بررسی خودکار) ================= */
+  function healthRow(dot, title, hint, act, actName) {
+    return '<div class="hrow"><span class="dot ' + dot + '"></span><div><b>' + title + "</b><em>" + hint + "</em></div>" +
+      (act ? '<button type="button" data-act="' + act + '">' + (actName || "فعال کن") + "</button>" : "") + "</div>";
+  }
+  function renderHealth(s) {
+    var box = $("healthBox"); if (!box) return;
+    s = s || {};
+    var h = "", z = C ? C.z : zoneNow(loc.tz, new Date());
+    h += healthRow("ok", "ساعت و منطقهٔ زمانی", loc.label + " · اکنون " + hhmm(z.h) + " · " + (loc.tz || "زمان محلی"));
+    var fontOK = false;
+    try { fontOK = !!(document.fonts && document.fonts.check && document.fonts.check('12px "Doran"')); } catch (e) { }
+    h += healthRow(fontOK ? "ok" : "warn", "فونت آفلاین", fontOK ? "فونت Doran بارگذاری شد" : "فونت در حال بارگذاری است (بدون اینترنت هم کار می‌کند)");
+    var lsOK = false;
+    try { localStorage.setItem("rk-t", "1"); lsOK = localStorage.getItem("rk-t") === "1"; localStorage.removeItem("rk-t"); } catch (e) { }
+    h += healthRow(lsOK ? "ok" : "bad", "ذخیره‌سازی روی گوشی", lsOK ? "سابقه، قضا و تنظیمات سالم ذخیره می‌شوند" : "حافظهٔ برنامه در دسترس نیست؛ داده‌ها ذخیره نمی‌شوند");
+    var calOK = false;
+    try { var i = dayInfoOf(jdnNow()); calOK = !!(i && i.j && i.h); } catch (e) { }
+    h += healthRow(calOK ? "ok" : "bad", "تقویم شمسی/قمری", calOK ? CAL.fmtJalali(jdnNow()) + " · " + CAL.fmtHijri(jdnNow()) : "تقویم بارگذاری نشد");
+    if (NZ.nat.has()) {
+      h += healthRow(s.notif ? "ok" : "bad", "اجازهٔ اعلان", s.notif ? "اعلان‌ها فعال است" : "اجازهٔ اعلان داده نشده", "notif");
+      h += healthRow(s.exact ? "ok" : "warn", "آلارم دقیق", s.exact ? "اذان سرِ وقت دقیق می‌رسد" : "بدون اجازه، اذان ممکن است چند دقیقه دیر برسد", "exact");
+      h += healthRow(s.fullscreen ? "ok" : "warn", "صفحهٔ اذان تمام‌صفحه", s.fullscreen ? "صفحهٔ اذان روی قفل هم باز می‌شود" : "برای اندروید ۱۴ به بعد باید اجازه بدهی", "full");
+      h += healthRow("ok", "سرویس تاریخ دائمی", cfg.notifDate === "on" ? "اعلان دائمی روشن است" : "خاموش است (اختیاری)");
+    } else {
+      h += healthRow(NATIVE ? "warn" : "warn", "نسخهٔ اندروید", NATIVE ? "ماژول بومی قدیمی است؛ APK تازه را نصب کن" : "در مرورگر، اعلان و ویجت محدود است");
+    }
+    h += healthRow(playingSounds ? "ok" : "warn", "فایل صداهای بسته‌بندی‌شده", playingSounds ? "azan.mp3 و soft.mp3 در دسترس‌اند" : "در حال بررسی…");
+    h += healthRow(ERRS.length ? "warn" : "ok", "گزارش خطا", ERRS.length ? f(ERRS.length) + " خطای محلی ثبت شده (پایین صفحه)" : "هیچ خطایی ثبت نشده است");
+    box.innerHTML = h;
+    box.onclick = function (e) {
+      var b = e.target.closest("button[data-act]"); if (!b) return;
+      var a = b.dataset.act;
+      if (a === "notif") NZ.nat.requestNotif().then(function () { refreshHealth(); });
+      else if (a === "exact") NZ.nat.openExactSettings();
+      else if (a === "full") NZ.nat.openFullScreenSettings();
+    };
+  }
+  var playingSounds = false;
+  function refreshHealth() {
+    renderHealth(null);
+    if (NZ.nat.has()) NZ.nat.ping().then(function (s) { renderHealth(s || {}); });
+    try {
+      fetch("audio/azan.mp3", { method: "HEAD" }).then(function (r) { playingSounds = !!(r && (r.ok || r.status === 206 || r.status === 0)); renderHealth(null); })
+        .catch(function () { renderHealth(null); });
+    } catch (e) { }
   }
 
   function renderSysBox() {
@@ -1674,6 +2023,58 @@
   $("fsMinus").onclick = function () { cfg.fs = Math.max(18, cfg.fs - 2); saveCfg(); applyCfg(); };
   all(".field.img").forEach(function (i) { i.oninput = function () { cfg.imgs = cfg.imgs || {}; cfg.imgs[i.dataset.p] = i.value.trim(); saveCfg(); }; });
   $("resetStats").onclick = function () { log = {}; save("rk-log", log); renderStats(); toast("آمار پاک شد."); };
+  /* ---- قفل: رمز، تأخیر، قفل فوری ---- */
+  if ($("lockPad")) $("lockPad").onclick = function (e) {
+    var b = e.target.closest("button[data-d]"); if (!b) return;
+    var d = b.dataset.d;
+    if (d === "del") pinBuf = pinBuf.slice(0, -1);
+    else if (d === "forgot") { toast("برای بازکردن قفل، داده‌های برنامه را از تنظیمات اندروید پاک کن."); return; }
+    else if (pinBuf.length < 4) pinBuf += d;
+    lockDots(false);
+    if (pinBuf.length === 4) lockTry();
+  };
+  document.addEventListener("keydown", function (e) {
+    if (!locked) return;
+    if (/^[0-9]$/.test(e.key) && pinBuf.length < 4) { pinBuf += e.key; lockDots(false); if (pinBuf.length === 4) lockTry(); }
+    else if (e.key === "Backspace") { pinBuf = pinBuf.slice(0, -1); lockDots(false); }
+  });
+  if ($("pinSave")) $("pinSave").onclick = function () {
+    var a = ($("pin1").value || "").trim(), b2 = ($("pin2").value || "").trim();
+    if (!/^[0-9]{4}$/.test(a)) { toast("رمز باید چهار رقم باشد"); return; }
+    if (a !== b2) { toast("دو رمز یکی نیستند"); return; }
+    savePin(a);
+    cfg.lock = "on"; saveCfg(); applyCfg();
+    $("pin1").value = ""; $("pin2").value = "";
+    toast("رمز ثبت شد؛ از این پس ورود با رمز است");
+  };
+  if ($("pinCancel")) $("pinCancel").onclick = function () { cfg.lock = "off"; saveCfg(); applyCfg(); toast("قفل روشن نشد"); };
+  if ($("lockSeg") || $("lockDelaySeg") || $("privSeg")) {
+    seg("lockSeg", "lock", function () {
+      if (cfg.lock === "on" && !PIN.hash) { toast("یک رمز چهاررقمی انتخاب کن"); }
+      else if (cfg.lock === "off" && PIN.hash) { PIN = { hash: "", salt: "" }; save("rk-pin", PIN); toast("قفل خاموش شد و رمز پاک شد"); }
+      lockNote();
+    });
+    seg("lockDelaySeg", "lockDelay", lockNote);
+    seg("privSeg", "priv", function () {
+      pushNative();
+      toast(cfg.priv === "hide" ? "محتوای اعلان‌ها روی صفحهٔ قفل گوشی مخفی می‌شود" : "محتوای اعلان‌ها روی صفحهٔ قفل گوشی نشان داده می‌شود");
+    });
+  }
+  if ($("lockNow")) $("lockNow").onclick = function () {
+    if (!lockReady()) { toast("اول قفل را روشن کن و رمز بگذار"); return; }
+    showLock("قفل دستی — رمز را بزن");
+  };
+  /* ---- داده‌ها ---- */
+  if ($("backupOut")) $("backupOut").onclick = backupOut;
+  if ($("backupIn")) $("backupIn").onclick = backupIn;
+  if ($("wipeAll")) $("wipeAll").onclick = function () { wipeAll(this); };
+  if ($("copyLog")) $("copyLog").onclick = function () {
+    if (!ERRS.length) { toast("گزارشی برای رونوشت نیست"); return; }
+    copyText(ERRS.map(function (e) { return new Date(e.t).toLocaleString("fa-IR") + " | " + e.m; }).join("\n"), "گزارش خطا رونوشت شد");
+  };
+  if ($("healthRun")) $("healthRun").onclick = refreshHealth;
+  if ($("shareWeek")) $("shareWeek").onclick = shareWeek;
+  if ($("showChangelog")) $("showChangelog").onclick = function () { showChanges(true); };
   if ($("startBtn2")) $("startBtn2").onclick = function () { if (this.dataset.k) start(this.dataset.k); };
   if ($("qazaCard")) $("qazaCard").onclick = function (e) {
     var b = e.target.closest("button[data-act]"); if (!b) return;
@@ -1682,15 +2083,19 @@
     else start(k, { qz: { dk: dk, k: k } });
   };
   if ($("azanPickBox")) $("azanPickBox").onclick = function (e) {
+    var tb = e.target.closest("button[data-test]");
+    if (tb) { testAzan(tb.dataset.test); return; }
     var b = e.target.closest("button[data-az]"); if (!b) return;
     var k = b.dataset.az;
     if (k === "__all") {
       var allOn = P.every(function (p) { return cfg.azanOn[p.k] !== "off"; });
       P.forEach(function (p) { cfg.azanOn[p.k] = allOn ? "off" : "on"; });
     } else cfg.azanOn[k] = cfg.azanOn[k] === "off" ? "on" : "off";
-    saveCfg(); renderAzanPick(); reschedule();
-    var off = P.filter(function (p) { return cfg.azanOn[p.k] === "off"; }).map(function (p) { return "اذان " + p.n; });
-    toast(off.length ? "خاموش شد (بدون صدا و بدون صفحهٔ اذان): " + off.join("، ") : "اذان همهٔ نمازها با صدا پخش می‌شود");
+    saveCfg(); renderAzanPick();
+    reschedule();
+    pushNative();                 /* همان لحظه: آلارم‌های اندروید با حالت تازه بازنویسی می‌شوند */
+    var off = P.filter(function (p) { return azanMode(p.k) !== "azan"; }).map(function (p) { return p.n; });
+    toast(off.length ? "بی‌صدا شد: " + off.join("، ") + " — بدون اذان و بدون صفحهٔ اذان" : "اذان همهٔ نمازها با صدا پخش می‌شود");
   };
   seg("jamSeg", "jam", function () {
     renderHome(); reschedule();
@@ -1716,7 +2121,12 @@
 
   // اعلان‌های تقویمی (تغییر روز) برای به‌روزرسانی نوار تاریخ
   document.addEventListener("visibilitychange", function () {
-    if (document.hidden) return;
+    if (document.hidden) { hideAt = Date.now(); return; }        /* زمان رفتن به پس‌زمینه */
+    if (lockReady() && (cfg.lockDelay === "0" || (hideAt && Date.now() - hideAt > (+cfg.lockDelay || 0) * 60000))) {
+      if ($("adhanScreen") && !$("adhanScreen").hidden) lockWasOn = true;   /* صفحهٔ اذان بالای قفل می‌ماند */
+      else showLock("بعد از مدتی نبودن، دوباره رمز را بزن");
+    }
+    hideAt = 0;
     if (!$("home").hidden) renderHome();
     if (!$("calendar").hidden) renderCalendar();
     if (!$("pray").hidden || !$("taqib").hidden || !$("tasbih").hidden) setWake(true);
@@ -1804,6 +2214,10 @@
   if (!routeHash() && NZ.nat.has() && cfg.notifDate === "on") NZ.nat.startDate();
   renderStats();
   renderThemeBox();
+  renderErrLog();
+  if (lockReady()) showLock();            /* قفل از همان آغاز */
+  else if (cfg.lock === "on") setTimeout(function () { toast("قفل روشن است ولی رمزی ثبت نشده؛ از تنظیمات › قفل نیاز رمز بگذار"); }, 2200);
+  maybeShowChanges();                     /* یک‌بار بعد از هر به‌روزرسانی */
   scanMissed();
   renderQazaCard();
   if ($("home") && !$("home").hidden) renderHome();

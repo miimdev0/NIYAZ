@@ -64,12 +64,15 @@
       <div class="ringwrap">
         <svg viewBox="0 0 200 200" class="ringsvg" aria-hidden="true">
           <circle cx="100" cy="100" r="90" class="rtrack"/>
+          <g class="rticks" id="rticks"></g>
           <circle cx="100" cy="100" r="90" class="rprog" id="rprog"/>
+          <circle cx="100" cy="100" r="90" class="rtip" id="rtip"/>
         </svg>
         <div class="rcenter">
           <div class="rlabel" id="nowText"></div>
           <div class="rcount" id="count">--:--:--</div>
           <div class="rsub" id="subText"></div>
+          <p id="srStatus" class="sr-only" aria-live="polite"></p>
           <div class="rclock" id="clock"></div>
         </div>
       </div>
@@ -93,6 +96,7 @@
       <div class="cardhead"><b>نمازهای قضا</b><span class="muted" id="qzCount"></span></div>
       <ul class="qz-list" id="qzList"></ul>
       <p class="note">هر نمازی که در وقتش خوانده نشود، خودکار اینجا ثبت می‌شود؛ در اولین فرصت شرعی بخوانش.</p>
+      <div class="row"><button type="button" class="glass" id="shareWeek">خلاصهٔ هفتهٔ من</button></div>
     </div>
 
     <ul id="list" class="plist"></ul>
@@ -238,7 +242,7 @@
 
   <!-- ============ تنظیمات ============ -->
   <section id="settings" class="screen" hidden data-tab="settings">
-    <header class="top glass pill"><b>تنظیمات</b><span class="muted">نیاز ۳٫۰</span></header>
+    <header class="top glass pill"><b>تنظیمات</b><span class="muted">نیاز ۳٫۱</span></header>
 
     <div class="glass card group">
       <h3>اعلان‌ها و صفحهٔ اذان</h3>
@@ -250,7 +254,8 @@
       <div class="seg" id="playSeg"><button type="button" data-v="on">روشن</button><button type="button" data-v="off">خاموش</button></div>
       <label>کدام اذان‌ها برایت پخش شود؟</label>
       <div class="chips azpick" id="azanPickBox"></div>
-      <p class="note">خاموش یعنی اذان آن نماز پخش نمی‌شود و صفحهٔ اذان هم باز نمی‌شود؛ فقط یک اعلان بی‌صدا می‌آید.</p>
+      <div class="azsum" id="azanSummary"></div>
+      <p class="note">با دکمهٔ «امتحان» می‌توانی همین حالا بشنوی که در وقت آن نماز چه صدایی پخش می‌شود.</p>
       <label>اعلان دائمی تاریخ (بالای صفحه)</label>
       <div class="seg" id="dateNotifSeg"><button type="button" data-v="on">روشن</button><button type="button" data-v="off">خاموش</button></div>
       <label>یادآوری قبل از وقت</label>
@@ -349,17 +354,61 @@
     </div>
 
     <div class="glass card group">
+      <h3>قفل نیاز</h3>
+      <label>قفل ورود با رمز چهاررقمی</label>
+      <div class="seg" id="lockSeg"><button type="button" data-v="off">خاموش</button><button type="button" data-v="on">روشن</button></div>
+      <div id="lockSetup" class="lock-setup" hidden>
+        <input id="pin1" class="field pin" type="password" inputmode="numeric" maxlength="4" dir="ltr" placeholder="رمز تازه (۴ رقم)">
+        <input id="pin2" class="field pin" type="password" inputmode="numeric" maxlength="4" dir="ltr" placeholder="تکرار رمز">
+        <div class="row">
+          <button id="pinSave" class="chip" type="button">ثبت رمز</button>
+          <button id="pinCancel" class="chip" type="button">انصراف</button>
+        </div>
+      </div>
+      <label>مدت تا قفل شدن خودکار</label>
+      <div class="seg" id="lockDelaySeg"><button type="button" data-v="0">فوری</button><button type="button" data-v="1">۱ دقیقه</button><button type="button" data-v="5">۵ دقیقه</button><button type="button" data-v="15">۱۵ دقیقه</button></div>
+      <div class="row"><button id="lockNow" class="chip" type="button">قفل همین حالا</button></div>
+      <p class="note" id="lockNote"></p>
+    </div>
+
+    <div class="glass card group">
+      <h3>حریم خصوصی</h3>
+      <label>محتوای اعلان‌ها روی صفحهٔ قفل گوشی</label>
+      <div class="seg" id="privSeg"><button type="button" data-v="full">کامل</button><button type="button" data-v="hide">مخفی</button></div>
+      <p class="note">نیاز هیچ داده‌ای را به اینترنت نمی‌فرستد؛ همه‌چیز (اوقات، سابقه، قضا، تنظیمات) فقط روی همین گوشی می‌ماند.</p>
+      <div class="row">
+        <button id="backupOut" class="glass" type="button">خروجی داده‌ها</button>
+        <button id="backupIn" class="glass" type="button">بازگرداندن</button>
+      </div>
+      <textarea id="backupText" class="field dta" dir="ltr" rows="3" placeholder="برای بازگرداندن، متن پشتیبان را اینجا بچسبان و «بازگرداندن» را بزن"></textarea>
+      <div class="row">
+        <button id="wipeAll" class="chip danger" type="button">پاک کردن همهٔ داده‌ها</button>
+      </div>
+    </div>
+
+    <div class="glass card group">
+      <h3>سلامت برنامه</h3>
+      <div id="healthBox" class="health"></div>
+      <div class="row"><button id="healthRun" class="glass" type="button">بررسی دوباره</button></div>
+    </div>
+
+    <div class="glass card group">
       <h3>آمار و داده</h3>
       <div id="stats" class="muted"></div>
-      <button id="resetStats" class="chip" type="button">پاک کردن آمار</button>
+      <div id="errLog" class="muted small" dir="auto"></div>
+      <div class="row">
+        <button id="resetStats" class="chip" type="button">پاک کردن آمار</button>
+        <button id="copyLog" class="chip" type="button">رونوشت گزارش خطا</button>
+      </div>
     </div>
 
     <div class="glass card about">
       <img src="icon.svg" alt="" class="alogo">
       <b class="aname">نیاز</b>
-      <span class="muted">همراه هوشمند نماز · نسخهٔ ۳٫۰</span>
+      <span class="muted">همراه هوشمند نماز · نسخهٔ ۳٫۱</span>
       <div class="sign sm"><span class="signtxt">مجتبی میدانی</span><svg viewBox="0 0 220 24" aria-hidden="true"><path d="M4 16 C40 2 70 26 110 12 S180 6 216 14" fill="none" stroke="url(#sg)" stroke-width="2.4" stroke-linecap="round"/></svg></div>
       <button class="chip" type="button" data-go="creator">دربارهٔ سازنده</button>
+      <button class="chip" type="button" id="showChangelog">تازه‌های نسخهٔ ۳٫۱</button>
     </div>
   </section>
 
@@ -473,6 +522,23 @@
     <button type="button" id="asClose">بستن صفحهٔ اذان</button>
   </div>
   <div class="as-ticker" id="asTicker"></div>
+</div>
+
+<!-- صفحهٔ قفل -->
+<div id="lockScr" hidden role="dialog" aria-modal="true" aria-label="قفل نیاز">
+  <div class="lockcard glass">
+    <img src="icon.svg" alt="" class="alogo">
+    <b>نیاز قفل است</b>
+    <span class="muted" id="lockMsg">رمز چهاررقمی را بزن</span>
+    <div class="dots" id="lockDots"><i></i><i></i><i></i><i></i></div>
+    <div class="pad" id="lockPad">
+      <button type="button" data-d="1">۱</button><button type="button" data-d="2">۲</button><button type="button" data-d="3">۳</button>
+      <button type="button" data-d="4">۴</button><button type="button" data-d="5">۵</button><button type="button" data-d="6">۶</button>
+      <button type="button" data-d="7">۷</button><button type="button" data-d="8">۸</button><button type="button" data-d="9">۹</button>
+      <button type="button" class="gh" data-d="del">⌫</button><button type="button" data-d="0">۰</button><button type="button" class="gh" data-d="forgot" title="فراموشی رمز">؟</button>
+    </div>
+    <p class="note">اگر رمز را فراموش کردی، با پاک‌کردن داده‌های برنامه (از تنظیمات اندروید) قفل باز می‌شود.</p>
+  </div>
 </div>
 
 <!-- برگهٔ پایین صفحه -->

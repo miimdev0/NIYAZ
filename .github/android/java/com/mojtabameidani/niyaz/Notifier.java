@@ -36,6 +36,13 @@ public final class Notifier {
 
     private Notifier() { }
 
+    /** اگر کاربر «مخفی‌کردن محتوای اعلان‌ها» را روشن کرده باشد، متن روی صفحهٔ قفل دیده نمی‌شود */
+    public static int visibility(Context c) {
+        JSONObject cfg = AlarmScheduler.readJson(c, AlarmScheduler.KEY_SCHEDULE);
+        boolean hide = cfg != null && cfg.optBoolean("privHide", false);
+        return hide ? Notification.VISIBILITY_SECRET : Notification.VISIBILITY_PUBLIC;
+    }
+
     private static int rawId(Context c, String name) {
         try {
             return c.getResources().getIdentifier(name, "raw", c.getPackageName());
@@ -161,7 +168,7 @@ public final class Notifier {
                 .setShowWhen(false)
                 .setContentIntent(openApp(c))
                 .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
+                .setVisibility(visibility(c));
 
         String[] nx = AlarmScheduler.nextPrayer(c);
         if (nx != null) {
@@ -213,7 +220,7 @@ public final class Notifier {
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
                 .setPriority(fullScreen ? NotificationCompat.PRIORITY_MAX : NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setVisibility(visibility(c))
                 .setAutoCancel(true)
                 .setShowWhen(true)
                 .setWhen(payload != null ? payload.optLong("at", System.currentTimeMillis()) : System.currentTimeMillis())

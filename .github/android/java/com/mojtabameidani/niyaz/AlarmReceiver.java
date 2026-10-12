@@ -51,7 +51,8 @@ public class AlarmReceiver extends BroadcastReceiver {
                 if (itemSound != null && itemSound.length() > 0) sound = itemSound;
                 String mode = i.getStringExtra("mode");
                 if (mode == null || mode.length() == 0) {
-                    mode = "none".equals(sound) ? "silent"
+                    /* نسخه‌های قدیمی‌تر فقط silent/sound می‌فرستادند */
+                    mode = (i.getBooleanExtra("silent", false) || "none".equals(sound)) ? "silent"
                             : ((playAdhan && ("azan".equals(sound) || "soft".equals(sound))) ? "azan" : "notif");
                 }
                 boolean wantsAzan = "azan".equals(mode) || "azan_snd".equals(mode);

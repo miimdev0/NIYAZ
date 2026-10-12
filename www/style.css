@@ -446,3 +446,70 @@ body.praying #tabs,body.sub #tabs,body.adhan-open #tabs{display:none}
   .db-j{font-size:14px}
   .themes{grid-template-columns:repeat(2,1fr)}
 }
+
+/* ================= آپدیت ۳٫۱ ================= */
+/* دسترس‌پذیری: فقط برای صفحه‌خوان‌ها */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+/* حلقه: تیک اوقات + سرِ نورانی */
+.rtick{stroke:rgba(255,255,255,.34);stroke-width:2;stroke-linecap:round}
+.rtick.on{stroke:var(--win,var(--gold));stroke-width:2.6}
+.rtip{fill:var(--win,var(--gold));r:4.2;filter:drop-shadow(0 0 8px var(--win,var(--gold)));transition:stroke-dashoffset 0s}
+.rprog{stroke:var(--win,var(--gold));filter:drop-shadow(0 0 8px color-mix(in srgb,var(--win,var(--gold)) 70%,transparent))}
+.rprog.pulse{animation:ringpulse 1.6s ease-in-out 3}
+@keyframes ringpulse{50%{stroke-width:12}}
+/* ورود پله‌ای کارت‌ها */
+#home>.card{animation:cardin .45s cubic-bezier(.2,.7,.3,1) both}
+#home>.card:nth-child(3){animation-delay:.05s}
+#home>.card:nth-child(4){animation-delay:.1s}
+@keyframes cardin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+/* انتخاب اذان‌ها: ردیف با وضعیت و دکمهٔ امتحان */
+.azsum{margin:10px 0 4px;font-size:12.5px;line-height:2;color:var(--muted);border-inline-start:3px solid var(--gold);padding-inline-start:10px;border-radius:4px}
+.azrow{display:flex;align-items:center;gap:8px}
+.aztog{flex:1;display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--ink);cursor:pointer;text-align:start;font-family:inherit}
+.aztog i{font-style:normal;font-size:16px}
+.aztog b{font-size:14px;font-weight:700}
+.aztog em{font-style:normal;font-size:11px;color:var(--muted);margin-inline-start:auto}
+.aztog .sw{width:38px;height:22px;border-radius:999px;background:rgba(255,255,255,.16);position:relative;flex:0 0 auto;transition:background .2s}
+.aztog .sw::after{content:"";position:absolute;top:2px;inset-inline-start:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
+.aztog[aria-pressed="true"]{border-color:color-mix(in srgb,var(--gold) 55%,transparent);background:color-mix(in srgb,var(--gold) 12%,transparent)}
+.aztog[aria-pressed="true"] .sw{background:var(--gold)}
+.aztog[aria-pressed="true"] .sw::after{transform:translateX(-16px)}
+.aztog.off em{color:#ff9a9a}
+.aztest{flex:0 0 auto;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--ink);border-radius:14px;padding:9px 11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.aztest:active{transform:scale(.96)}
+/* قفل */
+#lockScr{position:fixed;inset:0;z-index:17;display:flex;align-items:center;justify-content:center;padding:18px;
+  background:radial-gradient(120% 80% at 50% 0%,color-mix(in srgb,var(--aura) 26%,transparent),transparent 60%),linear-gradient(180deg,var(--sky1),var(--sky2))}
+.lockcard{width:min(360px,100%);border-radius:26px;padding:22px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.lockcard .alogo{width:64px;height:64px;border-radius:20px}
+.dots{display:flex;gap:12px;margin:8px 0 4px}
+.dots i{width:13px;height:13px;border-radius:50%;border:2px solid var(--line);background:transparent;transition:background .15s,transform .15s}
+.dots i.on{background:var(--gold);border-color:var(--gold);transform:scale(1.12)}
+.dots.bad i{border-color:#ff6b6b;background:rgba(255,107,107,.5)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:280px;margin-top:6px}
+.pad button{border:1px solid var(--line);background:rgba(255,255,255,.09);color:var(--ink);border-radius:18px;padding:15px 0;font-size:19px;font-weight:700;cursor:pointer;font-family:inherit}
+.pad button:active{transform:scale(.95);background:color-mix(in srgb,var(--gold) 22%,transparent)}
+.pad button.gh{font-size:17px;opacity:.8}
+.lock-setup{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.pin{letter-spacing:8px;text-align:center;font-size:19px}
+.field.dta{font-size:11.5px;line-height:1.7;font-family:ui-monospace,Menlo,monospace;resize:vertical}
+/* سلامت برنامه */
+.health{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
+.hrow{display:flex;align-items:center;gap:9px;font-size:13px;padding:9px 11px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--line)}
+.hrow .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.hrow .dot.ok{background:var(--teal);box-shadow:0 0 8px var(--teal)}
+.hrow .dot.bad{background:#ff6b6b;box-shadow:0 0 8px #ff6b6b}
+.hrow .dot.warn{background:var(--gold)}
+.hrow div{flex:1;display:flex;flex-direction:column;gap:2px}
+.hrow em{font-style:normal;font-size:11.5px;color:var(--muted)}
+.hrow button{border:1px solid var(--line);background:rgba(255,255,255,.1);color:var(--ink);border-radius:11px;padding:6px 10px;font-size:11.5px;cursor:pointer;font-family:inherit}
+.small{font-size:11.5px;line-height:1.8;word-break:break-word}
+.chip.danger{border-color:rgba(255,107,107,.5);color:#ffb3b3}
+.tapfx{position:fixed;z-index:30;width:18px;height:18px;border-radius:50%;pointer-events:none;background:radial-gradient(closest-side,color-mix(in srgb,var(--gold) 70%,transparent),transparent);animation:tapout .5s ease-out forwards}
+@keyframes tapout{to{transform:scale(6);opacity:0}}
+body.noanim .tapfx{display:none}
+@media (prefers-reduced-motion:reduce){.rtip{display:none}#home>.card{animation:none}}
+@media (max-width:380px){.aztog b{font-size:13px}.aztog em{font-size:10px}}
+.chg{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.chg li{font-size:13.5px;line-height:1.9;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid var(--line)}
+body.locked #tabs{display:none}
