@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- نیاز · ویجت اوقات امروز · © Mojtaba Meidani -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/w3_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/niyaz_widget_bg"
+    android:layoutDirection="rtl"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/w3_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:maxLines="1"
+            android:text="اوقات امروز"
+            android:textColor="#FFF4C25B"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/w3_moon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:textColor="#FF9FB4D8"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <TextView android:id="@+id/w3_n1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="صبح" android:textColor="#FF9FB4D8" android:textSize="11sp" />
+            <TextView android:id="@+id/w3_t1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#FFEAF1FF" android:textSize="15sp" android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <TextView android:id="@+id/w3_n2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ظهر" android:textColor="#FF9FB4D8" android:textSize="11sp" />
+            <TextView android:id="@+id/w3_t2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#FFEAF1FF" android:textSize="15sp" android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <TextView android:id="@+id/w3_n3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="عصر" android:textColor="#FF9FB4D8" android:textSize="11sp" />
+            <TextView android:id="@+id/w3_t3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#FFEAF1FF" android:textSize="15sp" android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <TextView android:id="@+id/w3_n4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="مغرب" android:textColor="#FF9FB4D8" android:textSize="11sp" />
+            <TextView android:id="@+id/w3_t4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#FFEAF1FF" android:textSize="15sp" android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+            <TextView android:id="@+id/w3_n5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="عشا" android:textColor="#FF9FB4D8" android:textSize="11sp" />
+            <TextView android:id="@+id/w3_t5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#FFEAF1FF" android:textSize="15sp" android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/w3_occ"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:maxLines="2"
+        android:textColor="#FF5FD3D0"
+        android:textSize="11sp" />
+</LinearLayout>

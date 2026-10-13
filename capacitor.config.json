@@ -3,8 +3,18 @@
   "appName": "نیاز",
   "webDir": "www",
   "backgroundColor": "#050b1f",
-  "android": { "backgroundColor": "#050b1f" },
+  "android": {
+    "backgroundColor": "#050b1f",
+    "allowMixedContent": false
+  },
   "plugins": {
-    "LocalNotifications": { "iconColor": "#F4C25B" }
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_niyaz",
+      "iconColor": "#F4C25B",
+      "sound": "azan"
+    }
+  },
+  "server": {
+    "androidScheme": "https"
   }
 }
