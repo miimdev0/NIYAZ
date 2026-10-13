@@ -9,6 +9,21 @@
   function $(id) { return document.getElementById(id); }
   /* فقط وقتی مقدار عوض شده در DOM بنویس (سرعت و مصرف باتری) */
   function setT(el, txt) { if (el && el.textContent !== txt) el.textContent = txt; }
+  /* اودومتر: فقط رقم‌هایی که عوض شده‌اند نرم بالا می‌چرخند (سبک و کم‌هزینه) */
+  function setRoll(el, txt) {
+    if (!el) return;
+    if (cfg.anim === "off" || reducedMotion() || !("innerHTML" in el)) { setT(el, txt); return; }
+    var prev = el.getAttribute("data-t");
+    if (prev === txt) return;
+    el.setAttribute("data-t", txt);
+    if (prev == null || prev.length !== txt.length) { setT(el, txt); return; }
+    var h = "", i, ch;
+    for (i = 0; i < txt.length; i++) {
+      ch = txt.charAt(i);
+      h += (ch === prev.charAt(i) || ch === ":" || ch === "-") ? ch : '<i class="roll">' + ch + "</i>";
+    }
+    el.innerHTML = h;
+  }
   function setW(el, w) { if (el && el.style.width !== w) el.style.width = w; }
   function all(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
   function fix(a, b) { return a - b * Math.floor(a / b); }
@@ -202,8 +217,14 @@
   var P = CONTENT.PRAYERS;
   function pr(k) { return P.filter(function (p) { return p.k === k; })[0]; }
   var zero5 = function () { return { fajr: 0, zuhr: 0, asr: 0, maghrib: 0, isha: 0 }; };
-  var VERSION = "3.3";
+  var VERSION = "3.4";
   var CHANGES = [
+    "🧭 قبله‌نما حالا با حسگر واقعی گوشی کار می‌کند (پل بومی): عقربه نرم می‌چرخد و وقتی رو به قبله شدی، هالهٔ فیروزه‌ای و لرزش کوتاه می‌گیری",
+    "🌠 شهاب‌باران شبانه روی آسمان خانه: شهاب‌های ریز با ردّ نور و گاهی یک شهاب بزرگ، درست هم‌زمان با ثبت نماز",
+    "✨ هالهٔ طلایی هنگام ثبت نماز: حلقهٔ نور، موج‌های طلایی و غبار نور از مرکز حلقه پخش می‌شود",
+    "🌈 شفق قطبی متحرک و لایهٔ سوم ستاره‌ها: آسمان سه لایه‌ای با عمق واقعی و رنگ‌هایی که با وقت روز عوض می‌شوند",
+    "🃏 کارت‌های سه‌بعدی: کارت‌ها با حرکت نشانگر خم می‌شوند و نور رویشان می‌لغزد",
+    "🔢 اعداد شمارش معکوس با هر تغییر، نرم بالا می‌چرخند (اودومتر)",
     "🧘 تمرکز و تنفس پیش از نماز: حلقهٔ تنفس ۴-۷-۸ با ذکر و راهنما (۳۰/۶۰/۹۰ ثانیه) و دکمهٔ «خودکار پیش از هر نماز»",
     "🔊 صدای مستقل هر نماز: برای هر نماز جداگانه انتخاب کن اذان / ملایم / پیش‌فرض گوشی پخش شود",
     "🖼 کارت تصویری هفته: نمودار گرافیکی ۷ روز + قضا + امضای سازنده، آمادهٔ فرستادن در روبیکا و تلگرام و ذخیره روی گوشی",
@@ -670,7 +691,7 @@
       setT($("nowText"), "نماز بعدی: " + pr(C.next).n);
       setT($("subText"), "ساعت " + hhmm(C.nextWin.tomorrow ? t.fajr : t[C.next]));
     }
-    setT($("count"), hms(secs));
+    setRoll($("count"), hms(secs));
     setT($("clock"), hhmm(z.h));
     var pnow = Math.max(0, Math.min(1, prog));
     var off = (CIRC * (1 - pnow)).toFixed(1);
@@ -873,15 +894,103 @@
     tip.setAttribute("cy", (100 + 90 * Math.sin(a)).toFixed(1));
     tip.setAttribute("fill", winColor(C ? (C.cur || C.next) : "zuhr"));
   }
+  /* هالهٔ طلایی، موج نور و غبار نور روی حلقهٔ خانه */
+  function goldBurst() {
+    if (cfg.anim === "off" || reducedMotion()) return;
+    try {
+      var wrap = document.querySelector("#home .ringwrap");
+      if (!wrap) return;
+      var hb = document.createElement("div"); hb.className = "haloburst"; wrap.appendChild(hb);
+      setTimeout(function () { if (hb.parentNode) hb.parentNode.removeChild(hb); }, 1200);
+      var k;
+      for (k = 0; k < 3; k++) {
+        (function (k2) {
+          var g = document.createElement("div"); g.className = "gring";
+          g.style.animationDelay = (k2 * 0.14) + "s"; wrap.appendChild(g);
+          setTimeout(function () { if (g.parentNode) g.parentNode.removeChild(g); }, 1700);
+        })(k);
+      }
+      for (k = 0; k < 14; k++) {
+        (function () {
+          var a = Math.random() * Math.PI * 2, d = 60 + Math.random() * 90;
+          var p = document.createElement("i"); p.className = "gdust";
+          p.style.setProperty("--dx", (Math.cos(a) * d).toFixed(0) + "px");
+          p.style.setProperty("--dy", (Math.sin(a) * d * 0.7 - 30).toFixed(0) + "px");
+          p.style.animationDelay = (Math.random() * 0.18).toFixed(2) + "s";
+          wrap.appendChild(p);
+          setTimeout(function () { if (p.parentNode) p.parentNode.removeChild(p); }, 1700);
+        })();
+      }
+      meteor(3);                      /* هم‌زمان چند شهاب روی آسمان */
+    } catch (e) { }
+  }
+  var lastGold = 0;
   function celebrate() {
     if (cfg.anim === "off") return;
     try {
       confetti();
+      if (Date.now() - lastGold > 1500) { lastGold = Date.now(); goldBurst(); }
       var r = $("rprog");
       if (r) { r.classList.add("pulse"); setTimeout(function () { r.classList.remove("pulse"); }, 5200); }
       buzz([40, 30, 40]);
     } catch (e) { }
   }
+  /* ---- کارت‌های سه‌بعدی: خم‌شدن نرم با حرکت نشانگر + لغزش نور ---- */
+  var tiltEl = null;
+  function tiltReset(el) {
+    el = el || tiltEl;
+    if (el) el.classList.remove("tilt");
+    tiltEl = null;
+  }
+  function tiltMove(e) {
+    if (cfg.anim === "off" || reducedMotion() || e.pointerType === "touch") return;
+    var t = e.target, el = t && t.closest ? t.closest(".card,.wpcard,#compass") : null;
+    if (el && el.closest("[hidden]")) el = null;                   /* فقط کارت‌های صفحهٔ نمایان */
+    if (el !== tiltEl) { tiltReset(); if (!el) return; tiltEl = el; el.classList.add("tilt"); }
+    if (!el) return;
+    var r = el.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    var px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5;
+    el.style.setProperty("--tx", (px * 9).toFixed(2) + "deg");
+    el.style.setProperty("--ty", (-py * 7).toFixed(2) + "deg");
+    el.style.setProperty("--gx", ((px + 0.5) * 100).toFixed(0) + "%");
+    el.style.setProperty("--gy", ((py + 0.5) * 100).toFixed(0) + "%");
+  }
+  function bindTilt() {
+    if (cfg.anim === "off" || reducedMotion()) return;
+    document.addEventListener("pointermove", tiltMove, { passive: true });
+    document.addEventListener("pointerleave", function () { tiltReset(); }, { passive: true });
+    window.addEventListener("blur", function () { tiltReset(); });
+  }
+
+  /* ---- شهاب‌باران: چند شهاب ریز با فاصلهٔ تصادفی، گاهی یکی بزرگ ---- */
+  var metTimer = 0;
+  function meteor(n) {
+    var box = $("meteors");
+    if (!box) return;
+    for (var i = 0; i < n; i++) {
+      var b = document.createElement("i"); b.className = "met" + (Math.random() < 0.22 ? " big" : "");
+      b.style.left = (4 + Math.random() * 72).toFixed(1) + "%";
+      b.style.top = (2 + Math.random() * 46).toFixed(1) + "%";
+      b.style.animationDelay = (i * 0.22 + Math.random() * 0.3).toFixed(2) + "s";
+      b.style.opacity = (0.55 + Math.random() * 0.45).toFixed(2);
+      box.appendChild(b);
+      (function (el) { setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 3200); })(b);
+    }
+  }
+  function meteorLoop() {
+    clearTimeout(metTimer);
+    var ph = document.body.dataset.phase || "night", dim = (ph === "night" ? 1 : (ph === "dusk" || ph === "dawn" ? 0.55 : 0.22));
+    var wait = (2600 + Math.random() * 5200) / Math.max(0.25, dim);
+    metTimer = setTimeout(function () {
+      if (cfg.anim !== "off" && !reducedMotion() && !document.hidden &&
+          (!$("home") || !$("home").hidden || !$("azan").hidden || !$("qibla").hidden)) {
+        meteor(ph === "night" ? (Math.random() < 0.4 ? 2 : 1) : 1);
+      }
+      meteorLoop();
+    }, wait);
+  }
+
   var lastArcKey = "";
   function drawArc() {
     var t = C.t, h = C.z.h, jdn = jdnNow();
@@ -1544,29 +1653,60 @@
     roseAngle += fix(tgt - roseAngle + 180, 360) - 180;
     rose.style.transform = "rotate(" + roseAngle + "deg)";
     $("cdeg").textContent = f(Math.round(heading)) + "°";
+    setAccText();
     var diff = fix(b - heading + 180, 360) - 180, ok = Math.abs(diff) < 4;
     comp.classList.toggle("aligned", ok);
     $("qState").textContent = ok ? "رو به قبله‌ای ✓" : (diff > 0 ? "به راست بچرخ" : "به چپ بچرخ");
     if (ok && !lastAlign) buzz(60);
     lastAlign = ok;
   }
+  /* هر منبعی (حسگر وب یا حسگر بومی گوشی) از این‌جا جهت را می‌ریزد */
+  function feedHeading(h) {
+    if (h == null || isNaN(h)) return;
+    heading = heading == null ? h : fix(heading + 0.3 * (fix(h - heading + 180, 360) - 180), 360);
+    if (!$("qibla").hidden && !qRaf) qRaf = requestAnimationFrame(function () { qRaf = 0; drawQibla(); });
+  }
   function onOri(e) {
     var h = null;
     if (e.webkitCompassHeading != null) h = e.webkitCompassHeading;
     else if (e.alpha != null && (e.absolute || e.type === "deviceorientationabsolute")) h = 360 - e.alpha;
     if (h == null) return;
-    heading = heading == null ? h : fix(heading + 0.3 * (fix(h - heading + 180, 360) - 180), 360);
-    if (!$("qibla").hidden && !qRaf) qRaf = requestAnimationFrame(function () { qRaf = 0; drawQibla(); });
+    qAccLvl = Math.max(qAccLvl, 1);
+    feedHeading(h);
   }
-  var compassOn = false;
+  var compassOn = false, qAccLvl = 0, qPoll = 0, qSeen = false;
+  /* حسگر بومی گوشی: هر ۱۵۰ میلی‌ثانیه یک‌بار و فقط تا وقتی صفحهٔ قبله باز است */
+  function compassPoll() {
+    if (qPoll || !NZ.nat.has() || typeof NZ.nat.compass !== "function") return;
+    qPoll = setInterval(function () {
+      if ($("qibla").hidden || document.hidden) return;
+      NZ.nat.compass().then(function (r) {
+        if (!r || r.az == null) return;
+        qSeen = true;
+        qAccLvl = typeof r.acc === "number" ? r.acc : qAccLvl;
+        feedHeading(360 - r.az);
+        setAccText();
+      }).catch(function () { });
+    }, 150);
+  }
+  function setAccText() {
+    var el = $("qAcc"); if (!el) return;
+    var txt = qAccLvl >= 3 ? "عالی" : (qAccLvl === 2 ? "خوب" : (qAccLvl === 1 ? "کالیبره کن" : "—"));
+    setT(el, txt);
+    el.className = qAccLvl >= 2 ? "good" : (qAccLvl === 1 ? "bad" : "");
+  }
   function startCompass() {
     var D = window.DeviceOrientationEvent;
+    compassPoll();
     function go() {
       if (compassOn) return; compassOn = true;
       window.addEventListener("deviceorientationabsolute", onOri, true);
       window.addEventListener("deviceorientation", onOri, true);
-      setTimeout(function () { if (heading == null) toast("حسگر جهت در دسترس نیست؛ فقط زاویه نمایش داده می‌شود."); }, 2500);
+      setTimeout(function () {
+        if (heading == null && !qSeen) toast("حسگر جهت در دسترس نیست؛ فقط زاویه نمایش داده می‌شود.");
+      }, 2500);
     }
+    if (qSeen) return;                       /* حسگر بومی جواب داده؛ نیازی به حسگر وب نیست */
     if (D && typeof D.requestPermission === "function") {
       D.requestPermission().then(function (r) { if (r === "granted") go(); else toast("اجازهٔ حسگر داده نشد."); }).catch(function () { toast("حسگر جهت در دسترس نیست."); });
     } else go();
@@ -2646,6 +2786,8 @@
   if (lockReady()) showLock();            /* قفل از همان آغاز */
   else if (cfg.lock === "on") setTimeout(function () { toast("قفل روشن است ولی رمزی ثبت نشده؛ از تنظیمات › قفل نیاز رمز بگذار"); }, 2200);
   maybeShowChanges();                     /* یک‌بار بعد از هر به‌روزرسانی */
+  bindTilt();                             /* کارت‌های سه‌بعدی (اگر انیمیشن روشن باشد) */
+  meteorLoop();                           /* شهاب‌باران شبانه */
   scanMissed();
   renderQazaCard();
   if ($("home") && !$("home").hidden) renderHome();

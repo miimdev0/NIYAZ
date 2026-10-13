@@ -6,6 +6,10 @@ import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
@@ -42,6 +46,69 @@ public class AlarmModule extends Plugin {
     @PluginMethod
     public void ping(PluginCall call) {
         call.resolve(status());
+    }
+
+    /* ================= حسگر جهت (قطب‌نمای قبله) =================
+       فقط وقتی صفحهٔ قبله در برنامه باز است، JS هر ۱۵۰ms این متد را صدا می‌زند؛
+       در پس‌زمینه حسگر کاملاً قطع می‌شود (handleOnPause) تا باتری نخورد. */
+    private SensorManager sensorMgr;
+    private SensorEventListener sensorL;
+    private volatile float azimuth = Float.NaN;
+    private volatile int azAcc = 0;
+
+    private void ensureSensor() {
+        if (sensorMgr != null) return;
+        try {
+            sensorMgr = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
+            if (sensorMgr == null) return;
+            Sensor s = sensorMgr.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+            if (s == null) s = sensorMgr.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+            if (s == null) { sensorMgr = null; return; }
+            final boolean rv = s.getType() == Sensor.TYPE_ROTATION_VECTOR;
+            sensorL = new SensorEventListener() {
+                private final float[] rm = new float[9];
+                private final float[] ori = new float[3];
+                @Override
+                public void onSensorChanged(SensorEvent e) {
+                    try {
+                        if (rv) {
+                            SensorManager.getRotationMatrixFromVector(rm, e.values);
+                            SensorManager.getOrientation(rm, ori);
+                            azimuth = (float) Math.toDegrees(ori[0]);
+                        } else {
+                            azimuth = e.values[0];
+                        }
+                        if (azimuth < 0) azimuth += 360f;
+                    } catch (Throwable ignored) { }
+                }
+                @Override
+                public void onAccuracyChanged(Sensor s2, int a) { azAcc = a; }
+            };
+            sensorMgr.registerListener(sensorL, s, SensorManager.SENSOR_DELAY_UI);
+        } catch (Throwable ignored) { sensorMgr = null; sensorL = null; }
+    }
+
+    private void dropSensor() {
+        try {
+            if (sensorMgr != null && sensorL != null) sensorMgr.unregisterListener(sensorL);
+        } catch (Throwable ignored) { }
+        sensorMgr = null; sensorL = null;
+    }
+
+    @PluginMethod
+    public void compass(PluginCall call) {
+        ensureSensor();
+        JSObject o = new JSObject();
+        if (!Float.isNaN(azimuth)) o.put("az", (double) azimuth);
+        o.put("acc", azAcc);
+        o.put("has", sensorL != null);
+        call.resolve(o);
+    }
+
+    @Override
+    protected void handleOnPause() {
+        super.handleOnPause();
+        dropSensor();
     }
 
     private JSObject status() {

@@ -45,6 +45,9 @@ jobs:
       - name: Patch Android project (alarm service, adhan screen, widget, permissions)
         run: python3 .github/scripts/patch_android.py
 
+      - name: Run tests (jsdom: graphics, prayer, focus, widgets)
+        run: npm test
+
       - name: Check Java references (fast fail before Gradle)
         run: python3 .github/scripts/check_java_refs.py
 

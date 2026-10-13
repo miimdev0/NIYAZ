@@ -614,3 +614,106 @@ body.noanim .bglow,body.noanim .bring{animation:none;transition:none}
   .aztog em{display:none}
   .aztest{padding:8px 8px;font-size:11px}
 }
+
+/* ================= آپدیت ۳٫۴ — سوپر گرافیک: قبله‌نما، شهاب‌باران، کارت سه‌بعدی ================= */
+/* لایهٔ سوم ستاره‌ها: نزدیک‌تر، درشت‌تر و آرام‌چرخان برای حس عمق */
+#sky .stars.s3{opacity:0;background-size:220% 220%;background-position:83px 27px;animation:twinkle 9s ease-in-out infinite 1.1s}
+body[data-phase="night"] #sky .stars.s3{opacity:.6}
+body[data-phase="dusk"] #sky .stars.s3{opacity:.45}
+
+/* شفق قطبی: سه نوار نرم که آرام می‌خزند و رنگشان با وقت روز عوض می‌شود */
+#sky .aurora{position:absolute;left:-16%;right:-16%;bottom:-8%;height:54vmax;pointer-events:none;opacity:.42;filter:blur(24px) saturate(1.3);
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 34%,#000 72%,transparent);mask-image:linear-gradient(180deg,transparent,#000 34%,#000 72%,transparent)}
+#sky .aurora i{position:absolute;inset:0;will-change:transform;border-radius:46% 54% 52% 48%/58% 42% 58% 42%;
+  animation:auro 24s ease-in-out infinite alternate}
+#sky .aurora i:nth-child(1){background:linear-gradient(120deg,color-mix(in srgb,var(--mood,#f4c25b) 34%,transparent),transparent 62%)}
+#sky .aurora i:nth-child(2){background:linear-gradient(60deg,rgba(120,190,255,.24),transparent 58%);animation-duration:31s;animation-delay:-6s}
+#sky .aurora i:nth-child(3){background:linear-gradient(200deg,rgba(255,140,190,.18),transparent 60%);animation-duration:38s;animation-delay:-14s}
+body[data-phase="day"] #sky .aurora{opacity:.22}
+@keyframes auro{from{transform:translate3d(-6%,2%,0) rotate(-3deg) scale(1.03)}to{transform:translate3d(7%,-4%,0) rotate(3deg) scale(1.14)}}
+
+/* شهاب‌باران شبانه */
+#sky .meteors{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:0;transition:opacity 1s}
+body[data-phase="night"] #sky .meteors{opacity:1}
+body[data-phase="dusk"] #sky .meteors,body[data-phase="dawn"] #sky .meteors{opacity:.55}
+#sky .meteors .met{position:absolute;width:168px;height:2px;border-radius:2px;will-change:transform,opacity;
+  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.95),rgba(255,236,196,.15));
+  box-shadow:0 0 8px rgba(255,255,255,.6);animation:met 1.5s linear forwards}
+#sky .meteors .met.big{width:290px;height:3px;animation-duration:2.2s;box-shadow:0 0 14px rgba(255,238,200,.85)}
+@keyframes met{
+  0%{transform:translate3d(0,0,0) rotate(22deg);opacity:0}
+  10%{opacity:1}
+  100%{transform:translate3d(58vmax,30vmax,0) rotate(22deg);opacity:0}
+}
+
+/* اسپلش: پرتوهای نور پشت لوگو + کشیده‌شدن امضای سازنده */
+#splash .sprays{position:absolute;left:50%;top:36%;width:0;height:0;opacity:.55;animation:spin 40s linear infinite}
+#splash .sprays i{position:absolute;left:-1px;top:0;width:2px;height:30vmax;transform-origin:0 0;
+  background:linear-gradient(180deg,rgba(255,224,152,.55),rgba(255,224,152,0));animation:sprayp 3.6s ease-in-out infinite}
+#splash .sprays i:nth-child(1){transform:rotate(0deg)}
+#splash .sprays i:nth-child(2){transform:rotate(30deg);animation-delay:.3s}
+#splash .sprays i:nth-child(3){transform:rotate(60deg);animation-delay:.6s}
+#splash .sprays i:nth-child(4){transform:rotate(90deg);animation-delay:.9s}
+#splash .sprays i:nth-child(5){transform:rotate(120deg);animation-delay:1.2s}
+#splash .sprays i:nth-child(6){transform:rotate(150deg);animation-delay:1.5s}
+#splash .sprays i:nth-child(7){transform:rotate(180deg);animation-delay:1.8s}
+#splash .sprays i:nth-child(8){transform:rotate(210deg);animation-delay:2.1s}
+#splash .sprays i:nth-child(9){transform:rotate(240deg);animation-delay:2.4s}
+#splash .sprays i:nth-child(10){transform:rotate(270deg);animation-delay:2.7s}
+#splash .sprays i:nth-child(11){transform:rotate(300deg);animation-delay:3s}
+#splash .sprays i:nth-child(12){transform:rotate(330deg);animation-delay:3.3s}
+@keyframes sprayp{50%{opacity:.9;transform-origin:0 0}}
+#splash .splogo{animation:logoIn .9s cubic-bezier(.2,.8,.25,1) both}
+@keyframes logoIn{from{transform:scale(.72) translateY(10px);opacity:0;filter:blur(6px)}to{transform:none;opacity:1;filter:none}}
+#splash .sign svg .spdraw{stroke-dasharray:430;stroke-dashoffset:430;animation:draw 1.1s .45s ease forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+
+/* کارت‌های سه‌بعدی: فقط وقتی نشانگر روی کارت است، با درخشش نور */
+.tilt{position:relative;transform:perspective(760px) rotateX(var(--ty,0deg)) rotateY(var(--tx,0deg));
+  transition:transform .28s cubic-bezier(.2,.75,.3,1);will-change:transform}
+.tilt::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .3s;
+  background:radial-gradient(180px 140px at var(--gx,50%) var(--gy,0%),rgba(255,255,255,.17),transparent 72%)}
+.tilt:hover::after{opacity:1}
+
+/* چرخش رقم‌های شمارش (اودومتر) */
+.roll{display:inline-block;will-change:transform,opacity;animation:rollup .34s cubic-bezier(.2,.75,.3,1)}
+@keyframes rollup{from{transform:translateY(-.5em) scale(.82);opacity:0}to{transform:none;opacity:1}}
+
+/* هالهٔ طلایی و غبار نور هنگام ثبت نماز */
+.haloburst,.gring,.gdust{position:absolute;left:50%;top:50%;pointer-events:none}
+.haloburst{width:160px;height:160px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,214,120,.62),rgba(255,214,120,.12) 55%,transparent 74%);
+  animation:haloburst 1.15s ease-out forwards}
+@keyframes haloburst{from{transform:translate(-50%,-50%) scale(.3);opacity:.95}to{transform:translate(-50%,-50%) scale(2.7);opacity:0}}
+.gring{width:126px;height:126px;border-radius:50%;border:2px solid rgba(255,224,152,.8);animation:gring 1.3s ease-out forwards}
+@keyframes gring{from{transform:translate(-50%,-50%) scale(.35);opacity:.9}to{transform:translate(-50%,-50%) scale(3.2);opacity:0}}
+.gdust{width:6px;height:6px;border-radius:50%;background:radial-gradient(closest-side,#fff7dd,rgba(255,214,120,0));
+  animation:gdust 1.35s ease-out forwards}
+@keyframes gdust{
+  from{transform:translate(-50%,-50%) scale(.7);opacity:1}
+  to{transform:translate(calc(-50% + var(--dx,0px)),calc(-50% + var(--dy,-40px))) scale(.2);opacity:0}
+}
+
+/* قبله‌نما: پرتوی رادار چرخان + حالت همراستا + رنگ دقت حسگر */
+#compass .sweep{position:absolute;inset:9%;border-radius:50%;pointer-events:none;opacity:.5;animation:spin 7.5s linear infinite;
+  background:conic-gradient(from 0deg,rgba(255,214,120,.36),transparent 24%,transparent 100%);
+  -webkit-mask-image:radial-gradient(closest-side,transparent 28%,#000 60%,transparent 90%);mask-image:radial-gradient(closest-side,transparent 28%,#000 60%,transparent 90%)}
+#compass.aligned{box-shadow:0 0 0 2px rgba(95,211,208,.5),0 0 36px rgba(95,211,208,.32)}
+#compass.aligned .kaaba i{filter:drop-shadow(0 0 10px rgba(95,211,208,.9))}
+#qAcc.good{color:#5fd3d0}
+#qAcc.bad{color:#ffb07a}
+
+/* خاموشی کامل حرکت‌های تازه با «انیمیشن: خاموش» و کم‌حرکتی دستگاه */
+body.noanim #sky .aurora,body.noanim #sky .meteors,body.noanim #splash .sprays{display:none}
+body.noanim .tilt{transform:none!important}
+body.noanim .tilt::after{opacity:0!important}
+body.noanim #compass .sweep{display:none}
+body.noanim .roll{animation:none}
+@media (prefers-reduced-motion:reduce){
+  #sky .aurora,#sky .meteors,#splash .sprays{display:none}
+  .tilt{transform:none!important}
+  #compass .sweep{display:none}
+}
+@media (max-width:380px){
+  #sky .aurora{height:42vmax;opacity:.34}
+  .haloburst{width:130px;height:130px}
+}

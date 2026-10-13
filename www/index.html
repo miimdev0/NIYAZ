@@ -20,18 +20,21 @@
 
 <div id="sky" aria-hidden="true">
   <div class="beams"><i></i><i></i><i></i><i></i></div>
-  <div class="stars"></div><div class="stars s2"></div>
+  <div class="stars"></div><div class="stars s2"></div><div class="stars s3"></div>
+  <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+  <div class="meteors" id="meteors" aria-hidden="true"></div>
   <div class="pattern"></div>
   <div class="orb"></div>
   <div class="aura"></div>
 </div>
 
 <div id="splash">
+  <div class="sprays" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   <img src="icon.svg" alt="" class="splogo">
   <h1 class="spname">نیاز</h1>
   <p class="sptag">همراه هوشمند نماز</p>
   <p class="sphint">تقویم سه‌گانه · اذان تمام‌صفحه · آموزش کامل نماز</p>
-  <div class="sign"><span class="signtxt">مجتبی میدانی</span><svg viewBox="0 0 220 24" aria-hidden="true"><path d="M4 16 C40 2 70 26 110 12 S180 6 216 14" fill="none" stroke="url(#sg)" stroke-width="2.4" stroke-linecap="round"/><defs><linearGradient id="sg"><stop offset="0" stop-color="#ffe29a"/><stop offset="1" stop-color="#e0a12b"/></linearGradient></defs></svg></div>
+  <div class="sign"><span class="signtxt">مجتبی میدانی</span><svg viewBox="0 0 220 24" aria-hidden="true"><path class="spdraw" d="M4 16 C40 2 70 26 110 12 S180 6 216 14" fill="none" stroke="url(#sg)" stroke-width="2.4" stroke-linecap="round"/><defs><linearGradient id="sg"><stop offset="0" stop-color="#ffe29a"/><stop offset="1" stop-color="#e0a12b"/></linearGradient></defs></svg></div>
 </div>
 
 <main id="app">
@@ -158,6 +161,7 @@
     <header class="top glass pill"><b>جهت قبله</b><button id="compassBtn" class="chip" type="button">فعال‌سازی قطب‌نما</button></header>
     <div class="compass glass" id="compass">
       <div class="lubber" aria-hidden="true"></div>
+      <div class="sweep" aria-hidden="true"></div>
       <div class="rose" id="rose">
         <span class="dir n">N</span><span class="dir e">E</span><span class="dir s">S</span><span class="dir w">W</span>
         <div class="kaaba" id="kaaba"><i>🕋</i></div>
@@ -168,8 +172,9 @@
       <div><span class="muted">زاویه از شمال</span><b id="qDeg"></b></div>
       <div><span class="muted">فاصله تا کعبه</span><b id="qDist"></b></div>
       <div><span class="muted">وضعیت</span><b id="qState">—</b></div>
+      <div><span class="muted">دقت حسگر</span><b id="qAcc">—</b></div>
     </div>
-    <p class="note">گوشی را صاف نگه دار و دور از آهن‌ربا. وقتی کعبه بالای صفحه قرار گرفت و رنگ سبز شد، رو به قبله‌ای.</p>
+    <p class="note">گوشی را صاف نگه دار و دور از آهن‌ربا. وقتی کعبه بالای صفحه قرار گرفت و رنگ سبز شد، رو به قبله‌ای. اگر نوشته «کالیبره کن» دیدی، گوشی را یک بار به شکل عدد ۸ در هوا بچرخان تا حسگر دقیق شود.</p>
   </section>
 
   <!-- ============ اذان و اقامه ============ -->
@@ -243,7 +248,7 @@
 
   <!-- ============ تنظیمات ============ -->
   <section id="settings" class="screen" hidden data-tab="settings">
-    <header class="top glass pill"><b>تنظیمات</b><span class="muted">نیاز ۳٫۳</span></header>
+    <header class="top glass pill"><b>تنظیمات</b><span class="muted">نیاز ۳٫۴</span></header>
 
     <div class="glass card group">
       <h3>اعلان‌ها و صفحهٔ اذان</h3>
@@ -411,10 +416,10 @@
     <div class="glass card about">
       <img src="icon.svg" alt="" class="alogo">
       <b class="aname">نیاز</b>
-      <span class="muted">همراه هوشمند نماز · نسخهٔ ۳٫۳</span>
+      <span class="muted">همراه هوشمند نماز · نسخهٔ ۳٫۴</span>
       <div class="sign sm"><span class="signtxt">مجتبی میدانی</span><svg viewBox="0 0 220 24" aria-hidden="true"><path d="M4 16 C40 2 70 26 110 12 S180 6 216 14" fill="none" stroke="url(#sg)" stroke-width="2.4" stroke-linecap="round"/></svg></div>
       <button class="chip" type="button" data-go="creator">دربارهٔ سازنده</button>
-      <button class="chip" type="button" id="showChangelog">تازه‌های نسخهٔ ۳٫۳</button>
+      <button class="chip" type="button" id="showChangelog">تازه‌های نسخهٔ ۳٫۴</button>
     </div>
   </section>
 
