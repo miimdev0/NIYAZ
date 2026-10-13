@@ -23,10 +23,24 @@ const ids = (d, id) => (d.getElementById(id) || {}).textContent || "";
 let fails = 0;
 const ok = (c, l, x = "") => { console.log((c ? "  OK  " : "  XX  ") + l + (x ? " -> " + x : "")); if (!c) fails++; };
 
+/* آماده‌شدن برنامه: تا وقتی شمارش، فاز روز و کمان آماده نشده صبر می‌کنیم
+   (روی ماشین‌های کند مثل دوندگان CI، تأخیر ثابت کافی نیست) */
+async function ready(d, ms = 20000) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < ms) {
+    const c = (d.getElementById("count") || {}).textContent || "";
+    const arc = (d.getElementById("arc") || {}).innerHTML || "";
+    if (c && c !== "--:--:--" && d.body.dataset.phase && arc.length > 20) return true;
+    await wait(120);
+  }
+  return false;
+}
+
+
 const script = fs.readFileSync(dir + "/script.js", "utf8");
 
 const { w, d, errors } = boot({ "rk-cfg3": { jam: "auto", notif: "off", anim: "on" } });
-await wait(600);
+await ready(d);
 
 /* --- کمان خورشید/ماه --- */
 const arc = d.getElementById("arc").innerHTML;

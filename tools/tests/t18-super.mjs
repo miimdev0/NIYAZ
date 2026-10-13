@@ -36,6 +36,20 @@ const ids = (d, id) => (d.getElementById(id) || {}).textContent || "";
 const NIGHT = Date.UTC(2026, 9, 13, 17, 0, 0);      /* ۲۰:۳۰ تهران */
 let fails = 0;
 const ok = (c, l, x = "") => { console.log((c ? "  OK  " : "  XX  ") + l + (x ? " -> " + x : "")); if (!c) fails++; };
+
+/* آماده‌شدن برنامه: تا وقتی شمارش، فاز روز و کمان آماده نشده صبر می‌کنیم
+   (روی ماشین‌های کند مثل دوندگان CI، تأخیر ثابت کافی نیست) */
+async function ready(d, ms = 20000) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < ms) {
+    const c = (d.getElementById("count") || {}).textContent || "";
+    const arc = (d.getElementById("arc") || {}).innerHTML || "";
+    if (c && c !== "--:--:--" && d.body.dataset.phase && arc.length > 20) return true;
+    await wait(120);
+  }
+  return false;
+}
+
 const css = fs.readFileSync(dir + "/style.css", "utf8");
 const script = fs.readFileSync(dir + "/script.js", "utf8");
 
@@ -50,7 +64,7 @@ ok(!/noanim[\s\S]{0,400}@keyframes met[\s\S]{0,200}noanim/.test(css) || true, "�
 /* ---- ۱: آسمان تازه (شهاب‌باران، شفق، لایهٔ سوم ستاره) ---- */
 {
     const { w, d, errors } = boot({ "rk-cfg3": { jam: "auto", notif: "off", anim: "on" } }, false, NIGHT);
-  await wait(500);
+  await ready(d);
   ok(!!d.getElementById("meteors"), "مخزن شهاب‌ها در صفحه هست");
   ok(d.querySelectorAll("#sky .stars.s3").length === 1, "لایهٔ سوم ستاره‌ها");
   ok(d.querySelectorAll("#sky .aurora i").length === 3, "سه نوار شفق قطبی");
@@ -83,7 +97,7 @@ ok(!/noanim[\s\S]{0,400}@keyframes met[\s\S]{0,200}noanim/.test(css) || true, "�
 /* ---- ۲: هالهٔ طلایی و شهاب هنگام ثبت نماز ---- */
 {
   const { w, d, errors } = boot({ "rk-cfg3": { jam: "auto", notif: "off", anim: "on", tap: "rakat", auto: "off", tq: "off", focus: "off" } }, false, NIGHT);
-  await wait(600);
+  await ready(d);
   click(w, d.getElementById("startBtn"));
   await wait(400);
   ok(!d.getElementById("pray").hidden, "صفحهٔ نماز باز شد", ids(d, "title").trim());
@@ -101,7 +115,7 @@ ok(!/noanim[\s\S]{0,400}@keyframes met[\s\S]{0,200}noanim/.test(css) || true, "�
 /* ---- ۳: قبله‌نما با حسگر بومی گوشی ---- */
 {
   const { w, d, errors, sent } = boot({ "rk-cfg3": { jam: "auto", notif: "off", anim: "on" } }, true);
-  await wait(700);
+  await ready(d);
   const tab = Array.from(d.querySelectorAll("#tabs button")).find(x => (x.textContent || "").includes("قبله"));
   click(w, tab);
   await wait(900);
@@ -120,7 +134,7 @@ ok(!/noanim[\s\S]{0,400}@keyframes met[\s\S]{0,200}noanim/.test(css) || true, "�
 /* ---- ۴: «انیمیشن: خاموش» همه‌چیز را می‌خواباند ---- */
 {
   const { w, d, errors } = boot({ "rk-cfg3": { jam: "auto", notif: "off", anim: "off" } });
-  await wait(400);
+  await ready(d);
   ok(d.body.classList.contains("noanim"), "کلاس noanim روی بدنه");
   const card = d.querySelector("#home .card") || d.querySelector("#home .glass.card");
   if (card) { card.getBoundingClientRect = () => ({ left: 0, top: 0, width: 300, height: 200 }); card.dispatchEvent(new w.MouseEvent("pointermove", { bubbles: true, clientX: 60, clientY: 40 })); }
@@ -134,7 +148,7 @@ ok(!/noanim[\s\S]{0,400}@keyframes met[\s\S]{0,200}noanim/.test(css) || true, "�
 /* ---- ۵: «تازه‌های نسخه» ۳٫۴ ---- */
 {
   const { w, d, errors } = boot({ "rk-ver": "3.3" });
-  await wait(500);
+  await ready(d);
   click(w, Array.from(d.querySelectorAll("#tabs button")).find(x => (x.textContent || "").includes("تنظیمات")));
   await wait(400);
   click(w, d.getElementById("showChangelog"));

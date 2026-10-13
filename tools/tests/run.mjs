@@ -30,7 +30,15 @@ for (const [title, file] of SUITES) {
   const oks = out.split("\n").filter(l => l.trim().startsWith("OK")).length;
   fails.forEach(l => process.stdout.write("   " + l.trim() + "\n"));
   if (code === 0) process.stdout.write("   ✓ " + oks + " بررسی سبز\n");
-  else { bad++; process.stdout.write("   ✗ " + file + " شکست خورد (کد " + code + ")\n" + out.split("\n").slice(-12).join("\n")); }
+  else {
+    bad++;
+    process.stdout.write("   ✗ " + file + " شکست خورد (کد " + code + ")\n");
+    /* این خط‌ها مستقیم به «حاشیه‌نویسی» گیت‌هاب می‌روند تا از بیرون هم دیده شوند */
+    const lines = out.split("\n").map(l => l.trim()).filter(Boolean);
+    lines.filter(l => l.startsWith("XX")).slice(0, 5).forEach(l => process.stdout.write("::error::" + file + " " + l + "\n"));
+    if (!lines.some(l => l.startsWith("XX"))) lines.slice(-6).forEach(l => process.stdout.write("::error::" + file + " " + l.slice(0, 300) + "\n"));
+    else process.stdout.write("::error::" + file + " بریده‌ای از خروجی: " + lines.slice(-3).join(" | ").slice(0, 300) + "\n");
+  }
 }
 process.stdout.write(bad ? "\n✗ " + bad + " مجموعه ناموفق\n" : "\n✓ همهٔ مجموعه‌های آزمون سبز\n");
 process.exit(bad ? 1 : 0);

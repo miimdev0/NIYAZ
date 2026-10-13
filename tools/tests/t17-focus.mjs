@@ -26,12 +26,26 @@ const ids = (d, id) => (d.getElementById(id) || {}).textContent || "";
 const strip = h => (h || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 let fails = 0;
 const ok = (c, l, x = "") => { console.log((c ? "  OK  " : "  XX  ") + l + (x ? " -> " + x : "")); if (!c) fails++; };
+
+/* آماده‌شدن برنامه: تا وقتی شمارش، فاز روز و کمان آماده نشده صبر می‌کنیم
+   (روی ماشین‌های کند مثل دوندگان CI، تأخیر ثابت کافی نیست) */
+async function ready(d, ms = 20000) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < ms) {
+    const c = (d.getElementById("count") || {}).textContent || "";
+    const arc = (d.getElementById("arc") || {}).innerHTML || "";
+    if (c && c !== "--:--:--" && d.body.dataset.phase && arc.length > 20) return true;
+    await wait(120);
+  }
+  return false;
+}
+
 const mains = k => { const p = sent.filter(x => x.m === "setConfig").pop(); return p ? JSON.parse(p.a.json).items.filter(i => i.kind === "main" && i.k === k) : []; };
 
 /* ---- ۱: تمرکز و تنفس ---- */
 {
   const { w, d, errors } = boot({ "rk-cfg3": { jam: "auto", notif: "off", focus: "60" } });
-  await wait(400);
+  await ready(d);
   ok(d.getElementById("focus").hidden, "صفحهٔ تمرکز در آغاز پنهان است");
   click(w, d.getElementById("focusBtn"));
   await wait(300);
@@ -67,7 +81,7 @@ const mains = k => { const p = sent.filter(x => x.m === "setConfig").pop(); retu
 /* ---- ۲: صدای مستقل هر نماز ---- */
 {
   const { w, d, errors } = boot({ "rk-cfg3": { jam: "auto", notif: "off", playAdhan: "on" } }, true);
-  await wait(600);
+  await ready(d);
   const f1 = mains("fajr"), z1 = mains("zuhr");
   ok(f1.every(x => x.sound === "azan" && x.mode === "azan"), "پیش‌فرض: صدای اذان");
   const sb = d.querySelector('#azanPickBox button[data-snd="fajr"]');
@@ -88,11 +102,11 @@ const mains = k => { const p = sent.filter(x => x.m === "setConfig").pop(); retu
 /* ---- ۳: پنجمین ویجت + کارت اشتراک‌گذاری + payload قضا ---- */
 {
   const { w, d, errors } = boot({}, true);
-  await wait(500);
+  await ready(d);
   const CAL = w.NZ.cal, j0 = CAL.jdnFromDate(new w.Date(), "Asia/Tehran");
   const key = j => { const i = CAL.dayInfo(j).j; return i.y + "-" + i.m + "-" + i.d; };
   const { w: w2, d: d2, errors: e2 } = boot({ "rk-cfg3": { jam: "auto", notif: "off" }, "rk-since": key(j0 - 1) }, true);
-  await wait(1200);
+  await ready(d2);
   const push = sent.filter(x => x.m === "push").pop();
   const wp = JSON.parse(push.a.widget);
   ok(wp.qaza && wp.qaza.count >= 5 && wp.qaza.first, "payload ویجت: قضای دیروز (≥۵)", JSON.stringify(wp.qaza && { c: wp.qaza.count, f: wp.qaza.first, w: wp.qaza.when }));
