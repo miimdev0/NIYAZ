@@ -58,7 +58,7 @@ public class NiyazWidgetQaza extends AppWidgetProvider {
             v.setTextViewText(R.id.w5_count, "نداری 🌱");
             v.setTextColor(R.id.w5_count, TEAL);
         } else {
-            v.setTextViewText(R.id.w5_title, "قضای نماز · " + WidgetKit.toFa(count) + " نماز");
+            v.setTextViewText(R.id.w5_title, "قضای نماز · " + toFa(count) + " نماز");
             v.setTextViewText(R.id.w5_count, first.length() > 0 ? "اول: قضای " + first + (when.length() > 0 ? " · " + when : "") : "در اولین فرصت بخوان");
             v.setTextColor(R.id.w5_count, GOLD);
         }
@@ -83,5 +83,17 @@ public class NiyazWidgetQaza extends AppWidgetProvider {
         if (android.os.Build.VERSION.SDK_INT >= 23) f |= PendingIntent.FLAG_IMMUTABLE;
         v.setOnClickPendingIntent(R.id.w5_root, PendingIntent.getActivity(c, 25, go, f));
         return v;
+    }
+
+    /** عدد را با رقم‌های فارسی می‌نویسد: ۶ → «۶» */
+    private static String toFa(int n) {
+        char[] fa = { '۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹' };
+        String s = String.valueOf(n);
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            b.append(ch >= '0' && ch <= '9' ? fa[ch - '0'] : ch);
+        }
+        return b.toString();
     }
 }
