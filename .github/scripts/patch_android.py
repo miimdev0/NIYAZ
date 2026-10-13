@@ -219,8 +219,8 @@ def patch_gradle():
     g = re.sub(r"compileSdk\s+(rootProject\.ext\.\w+|\d+)", "compileSdk " + COMPILE_SDK, g)
     g = re.sub(r"targetSdkVersion\s+(rootProject\.ext\.\w+|\d+)", "targetSdkVersion " + TARGET_SDK, g)
     g = re.sub(r"minSdkVersion\s+(rootProject\.ext\.\w+|\d+)", "minSdkVersion " + MIN_SDK, g)
-    g = g.replace("versionCode 1", "versionCode 5")
-    g = g.replace('versionName "1.0"', 'versionName "3.1"')
+    g = g.replace("versionCode 1", "versionCode 6")
+    g = g.replace('versionName "1.0"', 'versionName "3.2"')
 
     # صداهای اذان نباید فشرده شوند تا هم به‌عنوان asset و هم resource خوانده شوند
     if "noCompress" not in g:
@@ -242,7 +242,7 @@ tasks.withType(JavaCompile) {
         v = re.sub(r"minSdkVersion\s*=\s*\d+", "minSdkVersion = " + MIN_SDK, v)
         v = re.sub(r"compileSdkVersion\s*=\s*\d+", "compileSdkVersion = " + COMPILE_SDK, v)
         v = re.sub(r"targetSdkVersion\s*=\s*\d+", "targetSdkVersion = " + TARGET_SDK, v)
-        v = re.sub(r"versionCode\s*=\s*\d+", "versionCode = 5", v)
+        v = re.sub(r"versionCode\s*=\s*\d+", "versionCode = 6", v)
         write(vpath, v)
     log("gradle patched (compileSdk %s / targetSdk %s / minSdk %s)" % (COMPILE_SDK, TARGET_SDK, MIN_SDK))
 

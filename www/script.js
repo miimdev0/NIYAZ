@@ -202,8 +202,14 @@
   var P = CONTENT.PRAYERS;
   function pr(k) { return P.filter(function (p) { return p.k === k; })[0]; }
   var zero5 = function () { return { fajr: 0, zuhr: 0, asr: 0, maghrib: 0, isha: 0 }; };
-  var VERSION = "3.1";
+  var VERSION = "3.2";
   var CHANGES = [
+    "🌌 آسمان زنده: خورشید و ماه روی کمان واقعی حرکت می‌کنند، ماه به شکل هلال همان شب است و مسیر پیموده‌شده ردّ نورانی می‌گیرد",
+    "📱 حس عمق: با حرکت گوشی، ستاره‌ها و ستون‌های نور آرام جابه‌جا می‌شوند (پارالاکس با ژیروسکوپ)",
+    "🎚 ویژوالایزر صدا: هنگام پخش اذان، نوارهای نوری دور ساعت با صدای اذان می‌رقصند",
+    "🧎 آدمکِ متحرک نماز: به‌جای تصویر خالی، شکل قیام/رکوع/سجده/نشستن با انیمیشن نرم عوض می‌شود",
+    "🌈 همرنگی با وقت روز: رنگ آسمان و هاله با فاز روز (سپیده، ظهر، غروب، شب) آرام تغییر می‌کند",
+    "✨ شهاب‌سنگ هنگام ثبت نماز + گذرِ نرم بین صفحه‌ها (View Transitions)",
     "🔐 قفل ورود با رمز چهاررقمی (با هش SHA-256) + قفل خودکار و «قفل همین حالا»",
     "🕶 حریم خصوصی: مخفی‌کردن محتوای اعلان‌ها روی صفحهٔ قفل گوشی",
     "💾 خروجی و بازگرداندن همهٔ داده‌ها (اوقات، سابقه، قضا، تنظیمات) + پاک‌کردن کامل",
@@ -235,6 +241,29 @@
       if (el) renderErrLog();
     } catch (e) { }
   }
+  /* هالهٔ لمسی: بازخورد گرافیکی سبک روی هر لمس (فقط دو عنصر موقتی) */
+  var lastFx = 0;
+  function tapFx(x, y) {
+    if (cfg.anim === "off" || reducedMotion()) return;
+    var t = Date.now();
+    if (t - lastFx < 90) return;
+    lastFx = t;
+    try {
+      var el = document.createElement("span");
+      el.className = "tapfx";
+      el.style.left = (x - 9) + "px";
+      el.style.top = (y - 9) + "px";
+      document.body.appendChild(el);
+      setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 620);
+    } catch (e) { }
+  }
+  document.addEventListener("pointerdown", function (e) {
+    if (e && e.pointerType === "mouse") return;          /* روی دسکتاپ ساکت باش */
+    var x = e && e.clientX, y = e && e.clientY;
+    if (x == null) return;
+    tapFx(x, y);
+  }, { passive: true });
+
   window.addEventListener("error", function (e) { logErr((e && (e.message || (e.error && e.error.message))) || "خطای نامشخص"); });
   window.addEventListener("unhandledrejection", function (e) { logErr((e && e.reason && (e.reason.message || e.reason)) || "وعدهٔ ناموفق"); });
 
@@ -483,12 +512,33 @@
     return "dusk";
   }
   var lastPhase = "";
+  var MOOD = { dawn: "#ff9e7a", morning: "#ffd98a", noon: "#fff2c4", afternoon: "#ffbf7a", sunset: "#ff8f6b", dusk: "#9b8cff", night: "#7f9cff" };
   function setPhase() {
     var p = cfg.sky === "night" ? "night" : cfg.sky === "day" ? "noon" : phaseOf(C);
     if (p === lastPhase) return;
     lastPhase = p;
     document.body.dataset.phase = p;
+    try { document.documentElement.style.setProperty("--mood", MOOD[p] || "#f4c25b"); } catch (e) { }
   }
+  /* پارالاکس: ستاره‌ها و ستون‌های نور با حرکت گوشی آرام جابه‌جا می‌شوند (فقط ترنسفورم، ارزان) */
+  var parT = 0;
+  function applyPar(bx, by) {
+    try {
+      var r = document.documentElement.style;
+      r.setProperty("--px", (bx * 9).toFixed(1) + "px");
+      r.setProperty("--py", (by * 9).toFixed(1) + "px");
+    } catch (e) { }
+  }
+  function onTilt(e) {
+    if (cfg.anim === "off" || !e || parT) return;
+    parT = requestAnimationFrame(function () {
+      parT = 0;
+      var b = Math.max(-1, Math.min(1, (e.gamma || 0) / 35));
+      var g = Math.max(-1, Math.min(1, ((e.beta || 0) - 45) / 45));
+      applyPar(b, g);
+    });
+  }
+  if (window.DeviceOrientationEvent && window.addEventListener) window.addEventListener("deviceorientation", onTilt, { passive: true });
   function dayKey(z) {                       /* کلید روز = تاریخ شمسی، هم‌خوان با تقویم و آمار */
     var i = dayInfoOf(CAL.jdnFromGreg(z.y, z.m, z.d)).j;
     return i.y + "-" + i.m + "-" + i.d;
@@ -823,22 +873,52 @@
   }
   var lastArcKey = "";
   function drawArc() {
-    var t = C.t, h = C.z.h, W = 320;
-    var arcKey = Math.floor(h * 60) + "|" + Math.round(t.sunrise * 60) + "|" + Math.round(t.sunset * 60);
+    var t = C.t, h = C.z.h, jdn = jdnNow();
+    var moon = CAL.moonPhase(jdn), arcKey = Math.floor(h * 60) + "|" + Math.round(t.sunrise * 60) + "|" + Math.round(t.sunset * 60) + "|" + moon.idx;
     if (arcKey === lastArcKey) return;
     lastArcKey = arcKey;
     function pt(u) { var a = 1 - u; return [a * a * 20 + 2 * a * u * 160 + u * u * 300, a * a * 84 + 2 * a * u * -56 + u * u * 84]; }
-    var s = '<path d="M20 84 Q160 -56 300 84" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="2" stroke-dasharray="3 5"/>' +
-      '<line x1="8" x2="312" y1="84" y2="84" stroke="rgba(255,255,255,.25)"/>';
-    var day = h >= t.sunrise && h <= t.sunset, u, p;
+    var day = h >= t.sunrise && h <= t.sunset;
+    var s = "<defs>" +
+      '<linearGradient id="trail" x1="0" y1="1" x2="1" y2="0">' +
+      '<stop offset="0" stop-color="rgba(255,190,120,.55)"/><stop offset=".5" stop-color="rgba(255,235,190,.85)"/><stop offset="1" stop-color="rgba(160,190,255,.55)"/></linearGradient>' +
+      '<radialGradient id="sunglow"><stop offset="0" stop-color="rgba(255,214,120,.55)"/><stop offset="1" stop-color="rgba(255,214,120,0)"/></radialGradient>' +
+      "</defs>" +
+      '<path d="M20 84 Q160 -56 300 84" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="2" stroke-dasharray="3 5"/>' +
+      '<line x1="8" x2="312" y1="84" y2="84" stroke="rgba(255,255,255,.22)"/>';
+    var u = day ? (h - t.sunrise) / (t.sunset - t.sunrise)
+                : ((h < t.sunrise ? h + 24 : h) - t.sunset) / (t.sunrise + 24 - t.sunset);
+    u = Math.max(0, Math.min(1, u));
+    var p = pt(u);
+    /* ردّ روشنِ مسیرِ پیموده‌شده */
+    var seg = [], i, uu;
+    for (i = 0; i <= 24; i++) { uu = u * i / 24; var q = pt(uu); seg.push((i ? "L" : "M") + q[0].toFixed(1) + " " + q[1].toFixed(1)); }
+    s += '<path d="' + seg.join(" ") + '" fill="none" stroke="url(#trail)" stroke-width="3" stroke-linecap="round"/>';
     if (day) {
-      u = (h - t.sunrise) / (t.sunset - t.sunrise); p = pt(u);
-      s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="16" fill="rgba(255,214,120,.25)"/><circle cx="' + p[0] + '" cy="' + p[1] + '" r="8" fill="var(--gold)"/>';
+      s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="26" fill="url(#sunglow)"/><g class="srays" style="transform-origin:' + p[0] + "px " + p[1] + 'px">';
+      for (i = 0; i < 8; i++) {
+        var a2 = i * Math.PI / 4, r1 = 15, r2 = 21;
+        s += '<line x1="' + (p[0] + r1 * Math.cos(a2)).toFixed(1) + '" y1="' + (p[1] + r1 * Math.sin(a2)).toFixed(1) +
+          '" x2="' + (p[0] + r2 * Math.cos(a2)).toFixed(1) + '" y2="' + (p[1] + r2 * Math.sin(a2)).toFixed(1) +
+          '" stroke="rgba(255,214,120,.8)" stroke-width="2.4" stroke-linecap="round"/>';
+      }
+      s += "</g>" +
+        '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="11" fill="rgba(255,214,120,.35)"/>' +
+        '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="7" fill="var(--gold)"/>';
     } else {
-      var hh = h < t.sunrise ? h + 24 : h; u = (hh - t.sunset) / (t.sunrise + 24 - t.sunset); p = pt(Math.max(0, Math.min(1, u)));
-      s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="14" fill="rgba(200,215,255,.22)"/><text x="' + p[0] + '" y="' + (p[1] + 6) + '" style="font-size:18px;fill:#e8eefc">☾</text>';
+      /* هلال واقعی بر پایهٔ فاز ماه */
+      var cx = p[0], cy = p[1], r = 11, waxing = moon.age < 13.6, off = (1 - moon.illum) * r * 2 * (waxing ? -1 : 1);
+      s += '<circle cx="' + cx + '" cy="' + cy + '" r="16" fill="rgba(200,215,255,.16)"/>' +
+        '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#eef3ff"/>' +
+        '<circle cx="' + (cx + off).toFixed(1) + '" cy="' + cy + '" r="' + (r + 0.6) + '" fill="rgba(5,12,32,.96)"/>';
+      for (i = 0; i < 3; i++) {
+        var ang = i * 2.1 + 0.7;
+        s += '<circle cx="' + (cx + Math.cos(ang) * 26).toFixed(1) + '" cy="' + (cy + Math.sin(ang) * 18).toFixed(1) +
+          '" r="1.3" fill="rgba(255,255,255,.7)"/>';
+      }
     }
-    s += '<text x="6" y="94" style="text-anchor:start">طلوع ' + hhmm(t.sunrise) + '</text><text x="314" y="94" style="text-anchor:end">غروب ' + hhmm(t.sunset) + "</text>";
+    s += '<text x="6" y="94" style="text-anchor:start">طلوع ' + hhmm(t.sunrise) + '</text>' +
+      '<text x="314" y="94" style="text-anchor:end">غروب ' + hhmm(t.sunset) + "</text>";
     $("arc").innerHTML = s;
   }
 
@@ -1062,6 +1142,70 @@
     if (!silent) { stopAdhanAudio(); NZ.nat.stopAdhan(); }
     if (!NATIVE) setWake(false);
   }
+  /* ویژوالایزر صدا: نوارهای دور ساعت که با صدای اذان می‌رقصند */
+  var vizCtx = null, vizSrc = null, vizSrcEl = null, vizNode = null, vizData = null, vizRaf = 0;
+  function startViz(a) {
+    var sc = $("adhanScreen");
+    if (sc) sc.classList.add("playing");
+    var cv = $("asViz");
+    if (!cv || !cv.getContext) return;
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      vizCtx = vizCtx || new AC();
+      if (vizCtx.state === "suspended" && vizCtx.resume) vizCtx.resume();
+      if (vizSrcEl !== a) {
+        if (vizSrc && vizSrc.disconnect) { try { vizSrc.disconnect(); } catch (e) { } }
+        vizSrc = vizCtx.createMediaElementSource(a);
+        vizSrcEl = a;
+      }
+      vizNode = vizCtx.createAnalyser();
+      vizNode.fftSize = 128;
+      vizNode.smoothingTimeConstant = 0.82;
+      vizSrc.connect(vizNode);
+      vizNode.connect(vizCtx.destination);
+      vizData = new Uint8Array(vizNode.frequencyBinCount);
+      sc && sc.classList.add("viz");
+      if (!vizRaf) vizLoop();
+    } catch (e) { /* بی‌صدا رد شو: نوارهای CSS کار خودشان را می‌کنند */ }
+  }
+  function vizLoop() {
+    var cv = $("asViz");
+    if (!cv || !vizNode || !vizData) { vizRaf = 0; return; }
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    var W = cv.clientWidth || 320, H = cv.clientHeight || 320;
+    if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+    var cx = cv.getContext ? cv.getContext("2d") : null;
+    if (cx) {
+      vizNode.getByteFrequencyData(vizData);
+      cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cx.clearRect(0, 0, W, H);
+      var n = 36, mx = W / 2, my = H / 2, base = Math.min(W, H) * 0.3, amp = Math.min(W, H) * 0.13, i;
+      for (i = 0; i < n; i++) {
+        var v = vizData[Math.floor(i * vizData.length / n)] / 255;
+        var ang = -Math.PI / 2 + (i / n) * Math.PI * 2;
+        var len = 5 + v * amp;
+        cx.strokeStyle = "hsla(" + (44 - v * 16) + ",88%," + (58 + v * 22) + "%," + (0.18 + v * 0.72) + ")";
+        cx.lineWidth = Math.max(2, W / 130);
+        cx.lineCap = "round";
+        cx.beginPath();
+        cx.moveTo(mx + Math.cos(ang) * base, my + Math.sin(ang) * base);
+        cx.lineTo(mx + Math.cos(ang) * (base + len), my + Math.sin(ang) * (base + len));
+        cx.stroke();
+      }
+    }
+    vizRaf = requestAnimationFrame(vizLoop);
+  }
+  function stopViz() {
+    if (vizRaf) { cancelAnimationFrame(vizRaf); vizRaf = 0; }
+    var sc = $("adhanScreen");
+    if (sc) sc.classList.remove("playing", "viz");
+    var cv = $("asViz");
+    if (cv && cv.getContext) {
+      var cx = cv.getContext("2d");
+      if (cx) cx.clearRect(0, 0, cv.width, cv.height);
+    }
+  }
   function startAdhanAudio() {
     stopAdhanAudio();
     var a = new Audio("audio/azan.mp3"), token = ++sndToken;
@@ -1069,10 +1213,10 @@
     a.ontimeupdate = function () { if (token === sndToken) drawAdhanPlayer(); };
     a.onerror = function () { if (token === sndToken) { adhanAudio = null; drawAdhanPlayer(); } };
     var p = a.play();
-    if (p && p.then) p.then(function () { if (token === sndToken) { adhanAudio = a; drawAdhanPlayer(); } }).catch(function () { drawAdhanPlayer(); });
-    else { adhanAudio = a; drawAdhanPlayer(); }
+    if (p && p.then) p.then(function () { if (token === sndToken) { adhanAudio = a; drawAdhanPlayer(); startViz(a); } }).catch(function () { drawAdhanPlayer(); });
+    else { adhanAudio = a; drawAdhanPlayer(); startViz(a); }
   }
-  function stopAdhanAudio() { if (adhanAudio) { try { adhanAudio.pause(); } catch (e) { } adhanAudio = null; } drawAdhanPlayer(); }
+  function stopAdhanAudio() { if (adhanAudio) { try { adhanAudio.pause(); } catch (e) { } adhanAudio = null; } stopViz(); drawAdhanPlayer(); }
   function toggleAdhanAudio() { if (adhanAudio) { stopAdhanAudio(); NZ.nat.stopAdhan(); } else startAdhanAudio(); }
   function drawAdhanPlayer() {
     var el = $("asPlay"); if (!el) return;
@@ -1385,7 +1529,17 @@
       else if (!on && wake) { wake.release(); wake = null; }
     } catch (e) { }
   }
+  function reducedMotion() {
+    try { return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches); } catch (e) { return false; }
+  }
   function go(tab) {
+    var run = function () { goNow(tab); };
+    if (document.startViewTransition && cfg.anim !== "off" && !reducedMotion()) {
+      try { document.startViewTransition(run); return; } catch (e) { }
+    }
+    run();
+  }
+  function goNow(tab) {
     show(tab);
     if (tab === "home") renderHome();
     if (tab === "calendar") renderCalendar();
@@ -1495,7 +1649,10 @@
     for (var i = 0; i < p.r; i++) rh += '<i class="' + (i < done ? "full" : "") + (i === sess.r - 1 ? " act" : "") + '"><b></b></i>';
     $("rakats").innerHTML = rh;
     var url = (cfg.imgs && cfg.imgs[st.pose]) || DEFAULT_IMAGES[st.pose] || "", img = $("poseImg"), pose = $("pose");
-    $("poseLabel").textContent = POSE_NAME[st.pose];
+    var pn = POSE_NAME[st.pose] || "";
+    $("poseLabel").textContent = pn + " · " + (st.pose === "sajdah" ? "نزدیک‌ترین حالت به بنده" : "حالت جاری");
+    pose.dataset.pose = st.pose;                        /* آدمکِ SVG با انیمیشن نرم عوض می‌شود */
+    pose.setAttribute("aria-label", "تصویر حالت " + pn);
     if (url) { img.src = url; img.hidden = false; pose.className = "pose"; img.onerror = function () { img.hidden = true; pose.className = "pose noimg"; }; }
     else { img.hidden = true; pose.className = "pose noimg"; }
     $("stepName").textContent = st.name;
@@ -1582,11 +1739,23 @@
     if (!cx) return;
     var W = cv.width = innerWidth, H = cv.height = innerHeight, ps = [], i;
     var col = ["#f4c25b", "#ffe29a", "#5fd3d0", "#ffffff", "#e0a12b"];
-    for (i = 0; i < 90; i++) ps.push({ x: W / 2, y: H * 0.35, vx: (Math.random() - 0.5) * 11, vy: -Math.random() * 12 - 2, r: Math.random() * 5 + 2, c: col[i % 5], a: 1 });
+    for (i = 0; i < 90; i++) ps.push({ x: W / 2, y: H * 0.35, vx: (Math.random() - 0.5) * 11, vy: -Math.random() * 12 - 2, r: Math.random() * 5 + 2, c: col[i % 5], a: 1, sq: 1.6 });
+    /* چند شهاب‌سنگ از بالای صفحه */
+    for (i = 0; i < 3; i++) ps.push({ x: W * (0.15 + i * 0.3), y: H * 0.06, vx: -9 - i * 2, vy: 7 + i, r: 26 + i * 8, c: "#fff8e6", a: 1, meteor: true, sq: 0.14 });
     var n = 0;
     (function step() {
       cx.clearRect(0, 0, W, H);
-      ps.forEach(function (p) { p.x += p.vx; p.y += p.vy; p.vy += 0.28; p.a -= 0.007; cx.globalAlpha = Math.max(0, p.a); cx.fillStyle = p.c; cx.fillRect(p.x, p.y, p.r, p.r * 1.6); });
+      ps.forEach(function (p) {
+        p.x += p.vx; p.y += p.vy;
+        if (!p.meteor) p.vy += 0.28;
+        else { p.vx *= 0.995; p.vy *= 0.995; }
+        p.a -= p.meteor ? 0.012 : 0.007;
+        cx.globalAlpha = Math.max(0, p.a);
+        cx.fillStyle = p.c;
+        if (p.meteor) {
+          cx.save(); cx.translate(p.x, p.y); cx.rotate(Math.atan2(p.vy, p.vx)); cx.fillRect(-p.r, -1.4, p.r, 2.8); cx.restore();
+        } else cx.fillRect(p.x, p.y, p.r, p.r * 1.6);
+      });
       if (++n < 150) requestAnimationFrame(step); else cx.clearRect(0, 0, W, H);
     })();
   }
@@ -1603,6 +1772,7 @@
   function applyCfg() {
     document.documentElement.style.setProperty("--arfs", cfg.fs + "px");
     document.body.classList.toggle("noanim", cfg.anim === "off");
+    if (cfg.anim === "off") applyPar(0, 0);                 /* بدون انیمیشن: پارالاکس هم می‌خوابد */
     applyTheme();
     var segs = [["skySeg", "sky"], ["tapSeg", "tap"], ["tqSeg", "tq"], ["notifSeg", "notif"], ["preSeg", "pre"], ["sunSeg", "sun"],
       ["vibSeg", "vib"], ["asrSeg", "asr"], ["sndSeg", "snd"], ["iqSeg", "iq"], ["autoSeg", "auto"], ["spdSeg", "spd"],
