@@ -15,6 +15,7 @@ function boot(seed, native) {
   const Real = w.Date, shift = Date.UTC(2026, 9, 13, 9, 30, 0) - Real.now();
   class FakeDate extends Real { constructor(...a) { if (a.length === 0) super(Real.now() + shift); else super(...a); } static now() { return Real.now() + shift; } }
   w.Date = FakeDate;
+  if (typeof w.DeviceOrientationEvent === "undefined") w.DeviceOrientationEvent = function DeviceOrientationEvent() { };
   for (const k in seed) w.localStorage.setItem(k, JSON.stringify(seed[k]));
   for (const f of FILES) { const s = w.document.createElement("script"); s.textContent = fs.readFileSync(dir + "/" + f, "utf8");
     try { w.document.body.appendChild(s); } catch (e) { errors.push(f + " threw " + e.message); } }
