@@ -1,4 +1,4 @@
-/*  نیاز · همراه هوشمند نماز — نسخهٔ ۳٫۰
+/*  نیاز · همراه هوشمند نماز — نسخهٔ ۳٫۳
     © Mojtaba Meidani — مجتبی میدانی  */
 @font-face{font-family:"Doran";src:url("fonts/Doran.woff2") format("woff2"),url("fonts/Doran.woff") format("woff"),url("fonts/Doran.ttf") format("truetype"),url("fonts/Doran.otf") format("opentype");font-weight:100 600;font-display:swap}
 @font-face{font-family:"Doran";src:url("fonts/Doran-Bold.woff2") format("woff2"),url("fonts/Doran-Bold.woff") format("woff"),url("fonts/Doran-Bold.ttf") format("truetype"),url("fonts/Doran-Bold.otf") format("opentype");font-weight:700 900;font-display:swap}
@@ -572,4 +572,92 @@ body.noanim .as-eq i{animation:none;height:14px}
 @media (prefers-reduced-motion:reduce){
   ::view-transition-old(root),::view-transition-new(root){animation-duration:.01s}
   #sky::after{transition:none}
+}
+
+/* ================= آپدیت ۳٫۳ — سوپر گرافیک و انیمیشن ================= */
+/* موتور آسمان زنده (gfx.js): ستاره، شفق، ابر، غبار نور، شهاب */
+#skyfx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:screen;opacity:.92}
+body.noanim #skyfx{display:none}
+
+/* شمارش معکوس: اعداد متحرک که با هر تغییر می‌غلتند */
+.rcount .dg{display:inline-block}
+.rcount .dg.roll{animation:dgroll .34s cubic-bezier(.2,.7,.3,1)}
+@keyframes dgroll{
+  0%{transform:translateY(-42%) rotateX(58deg);opacity:0;filter:blur(1.6px)}
+  55%{filter:blur(0)}
+  100%{transform:none;opacity:1}}
+.rcount{animation:cntbreathe 5.5s ease-in-out infinite}
+@keyframes cntbreathe{50%{text-shadow:0 0 34px color-mix(in srgb,var(--gold) 70%,transparent)}}
+
+/* حلقهٔ تنفس: هالهٔ نرمِ هم‌رنگِ وقتِ فعلی پشت حلقه */
+.ringwrap::before{content:"";position:absolute;inset:4%;border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--win,var(--gold)) 26%,transparent),transparent 72%);
+  animation:haloB 6.5s ease-in-out infinite}
+@keyframes haloB{50%{opacity:.45;transform:scale(1.07)}}
+
+/* کارت قهرمان: عمق سه‌بعدی + بازتابِ نورِ مورب */
+.hero{transform:perspective(1100px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .28s ease-out}
+.hero::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(115deg,transparent 32%,rgba(255,255,255,.12) 46%,rgba(255,255,255,.03) 56%,transparent 68%);
+  background-size:230% 100%;animation:sheen 8.5s ease-in-out infinite}
+@keyframes sheen{0%,52%{background-position:175% 0}86%,100%{background-position:-75% 0}}
+body.noanim .hero{transform:none!important}
+
+/* دکمه‌های اصلی: درخششِ عبوری */
+.primary{position:relative;overflow:hidden}
+.primary::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.45) 48%,transparent 62%);
+  background-size:230% 100%;animation:sheen 5.5s ease-in-out infinite}
+
+/* ورود کارت‌ها با یک پالس نوری */
+#home>.card{animation:cardin .45s cubic-bezier(.2,.7,.3,1) both,cardglow 1.35s ease-out both}
+#home>.card:nth-child(3){animation-delay:.05s,.05s}
+#home>.card:nth-child(4){animation-delay:.1s,.1s}
+@keyframes cardglow{
+  0%{box-shadow:0 0 0 rgba(244,194,91,0)}
+  32%{box-shadow:0 12px 46px color-mix(in srgb,var(--gold) 28%,transparent)}
+  100%{box-shadow:0 12px 32px rgba(0,0,0,.26)}}
+
+/* تسبیح: موج نورانی با هر شمارش */
+.tbring{position:relative}
+.tbring.pulse::after{content:"";position:absolute;inset:-4px;border-radius:50%;pointer-events:none;
+  border:2px solid color-mix(in srgb,var(--gold) 62%,transparent);animation:tbripple .55s ease-out}
+@keyframes tbripple{from{transform:scale(.92);opacity:.9}to{transform:scale(1.24);opacity:0}}
+
+/* صفحهٔ اذان: شفق زنده + ماه با ذرات مداری */
+#adhanScreen::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(42% 30% at 18% 18%,color-mix(in srgb,var(--mood,#7f9cff) 26%,transparent),transparent 70%),
+    radial-gradient(46% 34% at 82% 28%,color-mix(in srgb,var(--gold) 16%,transparent),transparent 70%),
+    radial-gradient(52% 42% at 50% 92%,color-mix(in srgb,var(--aura) 28%,transparent),transparent 70%),
+    radial-gradient(40% 30% at 70% 60%,color-mix(in srgb,var(--mood,#7f9cff) 18%,transparent),transparent 70%);
+  background-size:150% 150%;background-position:0% 0%;
+  mix-blend-mode:screen;opacity:.85;animation:asdrift 16s ease-in-out infinite alternate}
+@keyframes asdrift{from{background-position:0% 0%}to{background-position:100% 100%}}
+.as-moonwrap{position:relative;display:inline-flex;align-items:center;justify-content:center;padding:12px 22px}
+.as-orbit{position:absolute;inset:0;pointer-events:none;animation:spin 22s linear infinite}
+.as-orbit i{position:absolute;top:50%;left:50%;width:5px;height:5px;margin:-2.5px;border-radius:50%;
+  background:var(--gold);box-shadow:0 0 10px var(--gold);opacity:.85}
+.as-orbit i:nth-child(1){transform:rotate(0deg) translateY(-21px)}
+.as-orbit i:nth-child(2){transform:rotate(120deg) translateY(-21px)}
+.as-orbit i:nth-child(3){transform:rotate(240deg) translateY(-21px)}
+
+/* اسپلش: هالهٔ تنفسی پشت نشان */
+#splash::before{content:"";position:absolute;left:50%;top:38%;width:330px;height:330px;transform:translate(-50%,-50%);
+  border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--gold) 20%,transparent),transparent 70%);
+  animation:sphalo 3.4s ease-in-out infinite}
+@keyframes sphalo{50%{transform:translate(-50%,-50%) scale(1.16);opacity:.6}}
+
+/* حلقهٔ نورانی دور شمارش تسبیح و تعقیبات (بزرگ‌تر و درخشان‌تر) */
+.tbring{box-shadow:0 0 44px color-mix(in srgb,var(--gold) 20%,transparent),0 0 90px color-mix(in srgb,var(--gold) 12%,transparent)}
+
+/* خاموشی کامل با «انیمیشن: خاموش» — تزئینات کامل می‌روند کنار (پاک و ارزان) */
+body.noanim .hero::after,body.noanim .primary::after,body.noanim .as-orbit,
+body.noanim #adhanScreen::before,body.noanim .ringwrap::before,
+body.noanim .tbring.pulse::after,body.noanim #splash::before,body.noanim #skyfx{display:none!important}
+body.noanim .hero{transform:none!important}
+@media (prefers-reduced-motion:reduce){
+  #skyfx,.hero::after,.primary::after,.as-orbit,#adhanScreen::before,.ringwrap::before,#splash::before{display:none!important}
+  .hero{transform:none!important}
 }

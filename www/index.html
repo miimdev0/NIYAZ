@@ -24,6 +24,7 @@
   <div class="pattern"></div>
   <div class="orb"></div>
   <div class="aura"></div>
+  <canvas id="skyfx"></canvas>
 </div>
 
 <div id="splash">
@@ -242,7 +243,7 @@
 
   <!-- ============ تنظیمات ============ -->
   <section id="settings" class="screen" hidden data-tab="settings">
-    <header class="top glass pill"><b>تنظیمات</b><span class="muted">نیاز ۳٫۲</span></header>
+    <header class="top glass pill"><b>تنظیمات</b><span class="muted">نیاز ۳٫۳</span></header>
 
     <div class="glass card group">
       <h3>اعلان‌ها و صفحهٔ اذان</h3>
@@ -310,7 +311,7 @@
       <div class="seg" id="datebarSeg"><button type="button" data-v="on">نمایش</button><button type="button" data-v="off">پنهان</button></div>
       <label>انیمیشن‌های پس‌زمینه (برای مصرف کمتر باتری خاموش کن)</label>
       <div class="seg" id="animSeg"><button type="button" data-v="on">روشن</button><button type="button" data-v="off">خاموش</button></div>
-      <p class="note">با روشن بودن انیمیشن، ستاره‌ها و ستون‌های نور با حرکت گوشی آرام جابه‌جا می‌شوند و آسمان با وقت روز همرنگ می‌شود.</p>
+      <p class="note">با روشن بودن انیمیشن، آسمان زنده (ستاره، شفق، ابر و شهاب)، پارالاکس گوشی، آتش‌بازی جشن‌ها و اعداد متحرک فعال‌اند؛ با خاموش کردن، همهٔ این‌ها کامل می‌خوابند و باتری کمتری مصرف می‌شود.</p>
       <label>اندازهٔ متن عربی</label>
       <div class="row"><button id="fsMinus" type="button" class="glass">کوچک‌تر</button><button id="fsPlus" type="button" class="glass">بزرگ‌تر</button></div>
     </div>
@@ -406,10 +407,10 @@
     <div class="glass card about">
       <img src="icon.svg" alt="" class="alogo">
       <b class="aname">نیاز</b>
-      <span class="muted">همراه هوشمند نماز · نسخهٔ ۳٫۲</span>
+      <span class="muted">همراه هوشمند نماز · نسخهٔ ۳٫۳</span>
       <div class="sign sm"><span class="signtxt">مجتبی میدانی</span><svg viewBox="0 0 220 24" aria-hidden="true"><path d="M4 16 C40 2 70 26 110 12 S180 6 216 14" fill="none" stroke="url(#sg)" stroke-width="2.4" stroke-linecap="round"/></svg></div>
       <button class="chip" type="button" data-go="creator">دربارهٔ سازنده</button>
-      <button class="chip" type="button" id="showChangelog">تازه‌های نسخهٔ ۳٫۲</button>
+      <button class="chip" type="button" id="showChangelog">تازه‌های نسخهٔ ۳٫۳</button>
     </div>
   </section>
 
@@ -541,7 +542,7 @@
   <div class="as-sub" id="asSub"></div>
   <div class="as-dates"><span id="asJ"></span><span id="asH"></span><span id="asG"></span></div>
   <div class="as-occ" id="asOcc"></div>
-  <div class="as-moon" id="asMoon"></div>
+  <div class="as-moonwrap"><span class="as-orbit" aria-hidden="true"><i></i><i></i><i></i></span><div class="as-moon" id="asMoon"></div></div>
   <div class="as-barwrap"><i id="asBar"></i></div>
   <div class="as-actions">
     <button type="button" id="asPlay">▶ پخش اذان</button>
@@ -582,6 +583,7 @@
 <script src="cal.js"></script>
 <script src="content.js"></script>
 <script src="nat.js"></script>
+<script src="gfx.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

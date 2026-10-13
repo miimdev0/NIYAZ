@@ -1,4 +1,4 @@
-/*  نیاز · همراه هوشمند نماز  —  نسخهٔ ۳٫۰
+/*  نیاز · همراه هوشمند نماز  —  نسخهٔ ۳٫۳
     © Mojtaba Meidani — مجتبی میدانی  */
 (function () {
   "use strict";
@@ -10,6 +10,29 @@
   /* فقط وقتی مقدار عوض شده در DOM بنویس (سرعت و مصرف باتری) */
   function setT(el, txt) { if (el && el.textContent !== txt) el.textContent = txt; }
   function setW(el, w) { if (el && el.style.width !== w) el.style.width = w; }
+  /* شمارش معکوس با اعداد متحرک: فقط رقم‌های تغییرکرده می‌غلتند */
+  function setCount(el, txt) {
+    if (!el || el.dataset.v === txt) return;
+    var prev = el.dataset.v;
+    el.dataset.v = txt;
+    if (prev == null || cfg.anim === "off" || reducedMotion()) { el.textContent = txt; return; }
+    var i, sp = el.children;
+    if (sp.length !== txt.length) {
+      el.textContent = "";
+      for (i = 0; i < txt.length; i++) {
+        var s = document.createElement("span");
+        s.className = "dg"; s.textContent = txt.charAt(i);
+        el.appendChild(s);
+      }
+      return;
+    }
+    for (i = 0; i < txt.length; i++) {
+      if (sp[i].textContent !== txt.charAt(i)) {
+        sp[i].textContent = txt.charAt(i);
+        sp[i].classList.remove("roll"); void sp[i].offsetWidth; sp[i].classList.add("roll");
+      }
+    }
+  }
   function all(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
   function fix(a, b) { return a - b * Math.floor(a / b); }
   var rad = Math.PI / 180;
@@ -133,7 +156,7 @@
     name: "مجتبی میدانی",
     role: "سازنده و طراح نیاز",
     bio: "نیاز را ساختم تا نماز با حضور قلب بیشتر و حواس‌پرتی کمتر خوانده شود؛ با محتوای کامل و بدون حذف.",
-    version: "۳٫۰",
+    version: "۳٫۳",
     links: [
       {
         n: "روبیکا", v: "https://rubika.ir/miim_dev", h: "miim_dev", c1: "#8b5cf6", c2: "#5b21b6",
@@ -202,23 +225,20 @@
   var P = CONTENT.PRAYERS;
   function pr(k) { return P.filter(function (p) { return p.k === k; })[0]; }
   var zero5 = function () { return { fajr: 0, zuhr: 0, asr: 0, maghrib: 0, isha: 0 }; };
-  var VERSION = "3.2";
+  var VERSION = "3.3";
   var CHANGES = [
-    "🌌 آسمان زنده: خورشید و ماه روی کمان واقعی حرکت می‌کنند، ماه به شکل هلال همان شب است و مسیر پیموده‌شده ردّ نورانی می‌گیرد",
-    "📱 حس عمق: با حرکت گوشی، ستاره‌ها و ستون‌های نور آرام جابه‌جا می‌شوند (پارالاکس با ژیروسکوپ)",
-    "🎚 ویژوالایزر صدا: هنگام پخش اذان، نوارهای نوری دور ساعت با صدای اذان می‌رقصند",
-    "🧎 آدمکِ متحرک نماز: به‌جای تصویر خالی، شکل قیام/رکوع/سجده/نشستن با انیمیشن نرم عوض می‌شود",
-    "🌈 همرنگی با وقت روز: رنگ آسمان و هاله با فاز روز (سپیده، ظهر، غروب، شب) آرام تغییر می‌کند",
-    "✨ شهاب‌سنگ هنگام ثبت نماز + گذرِ نرم بین صفحه‌ها (View Transitions)",
-    "🔐 قفل ورود با رمز چهاررقمی (با هش SHA-256) + قفل خودکار و «قفل همین حالا»",
-    "🕶 حریم خصوصی: مخفی‌کردن محتوای اعلان‌ها روی صفحهٔ قفل گوشی",
-    "💾 خروجی و بازگرداندن همهٔ داده‌ها (اوقات، سابقه، قضا، تنظیمات) + پاک‌کردن کامل",
-    "🩺 «سلامت برنامه»: بررسی خودکار اعلان، آلارم دقیق، صدا، فونت، تقویم و ذخیره‌سازی",
-    "🔔 انتخاب اذان‌ها با وضعیت روشن/بی‌صدا و دکمهٔ «امتحان» برای شنیدن همان اذان",
-    "🎨 حلقهٔ گرافیکی تازه: تیک‌های اوقات، سرِ نورانی متحرک و رنگ اختصاصی هر نماز",
-    "✨ جشن «تقبل الله» بعد از ثبت نماز + ورود پله‌ای کارت‌ها",
-    "📤 «خلاصهٔ هفتهٔ من» برای اشتراک‌گذاری + گزارش خطای محلی (بدون ارسال به اینترنت)",
-    "📝 ورقهٔ «تازه‌های این نسخه» و بهبود دسترس‌پذیری (خواننده‌ی صفحه)"
+    "🌌 موتور آسمان زنده: ستاره‌های چشمک‌زن، شفق قطبیِ روان، ابرهای شناور و غبار نور — همه روی یک لایهٔ canvas ارزان",
+    "🌠 شهاب‌سنگ‌های تصادفی: هر چند ثانیه یک شهاب با ردّ نورانی از آسمانِ شب می‌گذرد (روزها بی‌صدا)",
+    "🎆 آتش‌بازی نور: هنگام ثبت نماز و پایان نماز، چند انفجار رنگیِ نور با موج‌های حلقه‌ایِ درخشان",
+    "⏳ اعداد متحرک: رقم‌های شمارش معکوس با هر تغییر نرم می‌غلتند (بدون پرش و لرزش)",
+    "🔮 عمق سه‌بعدی کارت خانه: با حرکت گوشی یا ماوس، کارت قهرمان کمی کج می‌شود و نورِ مورب رویش می‌دود",
+    "🫁 حلقهٔ تنفس: هالهٔ نرمِ هم‌رنگِ وقتِ فعلی پشت حلقهٔ شمارش آرام نفس می‌کشد",
+    "📿 ذرات تسبیح: با هر شمارش، موجِ نورانی از حلقهٔ تسبیح می‌دود و انفجارِ ریزِ طلایی بلند می‌شود",
+    "🌙 ماهِ مداری در صفحهٔ اذان: سه ذرهٔ نورانی دور ماه می‌چرخند و شفقِ زنده پس‌زمینه را می‌شوید",
+    "🌠 «روزِ کامل»: هر روزی که هر پنج نماز را بخوانی، یک شهابِ طلاییِ بزرگ آسمان را می‌درد و جشن می‌گیرد",
+    "✨ درخششِ عبوری دکمه‌ها، هالهٔ تنفسی اسپلش و پالسِ نوریِ ورود کارت‌ها",
+    "🌙 هلال واقعی ماه + مسیر خورشید با ردّ نورانی (از ۳٫۲)",
+    "🎚 ویژوالایزر صدای اذان + آدمکِ متحرک نماز (از ۳٫۲)"
   ];
   var DEFAULTS = {
     sky: "auto", tap: "step", tq: "on", notif: "off", pre: "0", sun: "off", vib: "on",
@@ -528,6 +548,15 @@
       r.setProperty("--px", (bx * 9).toFixed(1) + "px");
       r.setProperty("--py", (by * 9).toFixed(1) + "px");
     } catch (e) { }
+    /* عمق سه‌بعدی کارت قهرمان: کج‌شدن ملایم با همان حرکت */
+    var h = document.querySelector ? document.querySelector(".hero") : null;
+    if (h && h.style) {
+      if (cfg.anim === "off") { h.style.setProperty("--rx", "0deg"); h.style.setProperty("--ry", "0deg"); }
+      else {
+        h.style.setProperty("--rx", (by * -4).toFixed(2) + "deg");
+        h.style.setProperty("--ry", (bx * 5).toFixed(2) + "deg");
+      }
+    }
   }
   function onTilt(e) {
     if (cfg.anim === "off" || !e || parT) return;
@@ -539,6 +568,23 @@
     });
   }
   if (window.DeviceOrientationEvent && window.addEventListener) window.addEventListener("deviceorientation", onTilt, { passive: true });
+  /* درخششِ مورب زیر انگشت/ماوس روی کارت قهرمان (فقط ماوس؛ لمس مزاحم اسکرول نمی‌شود) */
+  var heroGlareT = 0;
+  document.addEventListener("pointermove", function (e) {
+    if (!e || e.pointerType !== "mouse" || cfg.anim === "off") return;
+    var h = e.target && e.target.closest ? e.target.closest(".hero") : null;
+    if (!h || heroGlareT) return;
+    heroGlareT = requestAnimationFrame(function () {
+      heroGlareT = 0;
+      try {
+        var r = h.getBoundingClientRect();
+        var b = Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width - 0.5) * 2));
+        var g = Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height - 0.5) * 2));
+        h.style.setProperty("--ry", (b * 6).toFixed(2) + "deg");
+        h.style.setProperty("--rx", (g * -5).toFixed(2) + "deg");
+      } catch (err) { }
+    });
+  }, { passive: true });
   function dayKey(z) {                       /* کلید روز = تاریخ شمسی، هم‌خوان با تقویم و آمار */
     var i = dayInfoOf(CAL.jdnFromGreg(z.y, z.m, z.d)).j;
     return i.y + "-" + i.m + "-" + i.d;
@@ -631,6 +677,18 @@
 
   var CIRC = 2 * Math.PI * 90;
   var lastRing = "", lastTickMin = -1;
+  /* «روزِ کامل»: هر پنج نمازِ یک روز → یک شهاب طلاییِ بزرگ (فقط یک‌بار در هر روز) */
+  var fullDays = {};
+  function checkFullDay(k, done) {
+    if (!done || done.length < 5 || cfg.anim === "off") return;
+    if (fullDays[k]) return;
+    fullDays[k] = 1;
+    try {
+      if (load("rk-full:" + k, 0)) return;
+      save("rk-full:" + k, 1);
+      if (window.NZGFX && NZGFX.fullDay) NZGFX.fullDay();
+    } catch (e) { }
+  }
   function tick(skipCompute) {
     if (!skipCompute) {
       C = compute();
@@ -639,8 +697,9 @@
       setPhase();
     }
     var z = C.z, t = C.t, secs, prog, mode = "cur", drift = C.at ? (Date.now() - C.at) / 3600000 : 0;
-    var done = log[dayKey(z)] || [];
+    var dk = dayKey(z), done = log[dk] || [];
     var doneCur = !!(C.cur && done.indexOf(C.cur) >= 0);
+    checkFullDay(dk, done);
     var second = (C.cur && C.chosenKeys.length > 1) ? C.chosenKeys[1] : "";
     if (C.cur && !doneCur) {
       secs = Math.max(0, C.left - drift) * 3600;
@@ -660,7 +719,7 @@
       setT($("nowText"), "نماز بعدی: " + pr(C.next).n);
       setT($("subText"), "ساعت " + hhmm(C.nextWin.tomorrow ? t.fajr : t[C.next]));
     }
-    setT($("count"), hms(secs));
+    setCount($("count"), hms(secs));
     setT($("clock"), hhmm(z.h));
     var pnow = Math.max(0, Math.min(1, prog));
     var off = (CIRC * (1 - pnow)).toFixed(1);
@@ -1493,12 +1552,24 @@
     $("tbRing").style.setProperty("--p", tb.t ? tb.c / tb.t * 100 : 0);
     $("tbAr").textContent = tb.ar; $("tbFa").textContent = tb.fa;
     $("tbToday").textContent = "مجموع امروز: " + f(tb.tot);
-    if (pulse) { var r = $("tbRing"); r.classList.remove("pulse"); void r.offsetWidth; r.classList.add("pulse"); }
+    if (pulse) {
+      var r = $("tbRing"); r.classList.remove("pulse"); void r.offsetWidth; r.classList.add("pulse");
+      /* انفجار ریزِ طلایی از حلقهٔ تسبیح */
+      if (window.NZGFX && NZGFX.burst) {
+        try {
+          var rr = r.getBoundingClientRect();
+          NZGFX.burst(rr.left + rr.width / 2, rr.top + rr.height / 2, 12);
+        } catch (e) { }
+      }
+    }
     save("rk-tb", tb);
   }
   function tbTap() {
     tb.c++; tb.tot++; save("rk-tb-all", load("rk-tb-all", 0) + 1); buzz(8);
-    if (tb.t && tb.c >= tb.t) { buzz([70, 40, 70]); toast("به " + f(tb.t) + " رسیدی"); tb.c = 0; tb.rounds++; }
+    if (tb.t && tb.c >= tb.t) {
+      buzz([70, 40, 70]); toast("به " + f(tb.t) + " رسیدی"); tb.c = 0; tb.rounds++;
+      if (window.NZGFX && NZGFX.fireworks) { try { NZGFX.fireworks(); } catch (e) { } }
+    }
     drawTb(true);
   }
   function renderDuaList() {
@@ -1714,7 +1785,15 @@
     $("cnt").textContent = it.c > 1 ? f(sess.c) : "◦";
     $("cntOf").textContent = it.c > 1 ? "از " + f(it.c) : "لمس برای ادامه";
     $("ring").style.setProperty("--p", it.c > 1 ? sess.c / it.c * 100 : 0);
-    if (pulse) { var r = $("ring"); r.classList.remove("pulse"); void r.offsetWidth; r.classList.add("pulse"); }
+    if (pulse) {
+      var r = $("ring"); r.classList.remove("pulse"); void r.offsetWidth; r.classList.add("pulse");
+      if (window.NZGFX && NZGFX.ripple) {
+        try {
+          var rr = r.getBoundingClientRect();
+          NZGFX.ripple(rr.left + rr.width / 2, rr.top + rr.height / 2);
+        } catch (e) { }
+      }
+    }
   }
   function tqNext() {
     var it = items[sess.i];
@@ -1735,6 +1814,11 @@
 
   /* ================= افکت جشن ================= */
   function confetti() {
+    /* موتور سوپر گرافیک (gfx.js): آتش‌بازی نور + موج‌های حلقه‌ای */
+    if (window.NZGFX && NZGFX.fireworks) {
+      try { NZGFX.fireworks(); return; } catch (e) { }
+    }
+    /* پشتیبان قدیمی اگر gfx.js نبود */
     var cv = $("fx"), cx = cv && cv.getContext ? cv.getContext("2d") : null;
     if (!cx) return;
     var W = cv.width = innerWidth, H = cv.height = innerHeight, ps = [], i;
