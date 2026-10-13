@@ -110,6 +110,20 @@ MANIFEST_COMPONENTS = """
         </receiver>
 
         <receiver
+            android:name="com.mojtabameidani.niyaz.NiyazWidgetQaza"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.DATE_CHANGED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/niyaz_widget_qaza_info" />
+        </receiver>
+
+        <receiver
             android:name="com.mojtabameidani.niyaz.NiyazWidgetWeek"
             android:exported="true">
             <intent-filter>
@@ -219,8 +233,8 @@ def patch_gradle():
     g = re.sub(r"compileSdk\s+(rootProject\.ext\.\w+|\d+)", "compileSdk " + COMPILE_SDK, g)
     g = re.sub(r"targetSdkVersion\s+(rootProject\.ext\.\w+|\d+)", "targetSdkVersion " + TARGET_SDK, g)
     g = re.sub(r"minSdkVersion\s+(rootProject\.ext\.\w+|\d+)", "minSdkVersion " + MIN_SDK, g)
-    g = g.replace("versionCode 1", "versionCode 6")
-    g = g.replace('versionName "1.0"', 'versionName "3.2"')
+    g = g.replace("versionCode 1", "versionCode 7")
+    g = g.replace('versionName "1.0"', 'versionName "3.3"')
 
     # صداهای اذان نباید فشرده شوند تا هم به‌عنوان asset و هم resource خوانده شوند
     if "noCompress" not in g:
@@ -242,7 +256,7 @@ tasks.withType(JavaCompile) {
         v = re.sub(r"minSdkVersion\s*=\s*\d+", "minSdkVersion = " + MIN_SDK, v)
         v = re.sub(r"compileSdkVersion\s*=\s*\d+", "compileSdkVersion = " + COMPILE_SDK, v)
         v = re.sub(r"targetSdkVersion\s*=\s*\d+", "targetSdkVersion = " + TARGET_SDK, v)
-        v = re.sub(r"versionCode\s*=\s*\d+", "versionCode = 6", v)
+        v = re.sub(r"versionCode\s*=\s*\d+", "versionCode = 7", v)
         write(vpath, v)
     log("gradle patched (compileSdk %s / targetSdk %s / minSdk %s)" % (COMPILE_SDK, TARGET_SDK, MIN_SDK))
 
@@ -292,7 +306,7 @@ def check_result():
     gradle = read(os.path.join(APP, "build.gradle"))
     problems = []
     for token in ("AzanService", "AzanActivity", "NiyazWidgetProvider", "NiyazWidgetMini", "NiyazWidgetTimes",
-                  "NiyazWidgetWeek", "BootReceiver", "USE_EXACT_ALARM", "POST_NOTIFICATIONS"):
+                  "NiyazWidgetWeek", "NiyazWidgetQaza", "BootReceiver", "USE_EXACT_ALARM", "POST_NOTIFICATIONS"):
         if token not in xml:
             problems.append("manifest: " + token)
     for token in ("compileSdk " + COMPILE_SDK, "targetSdkVersion " + TARGET_SDK, "minSdkVersion " + MIN_SDK):

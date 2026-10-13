@@ -81,6 +81,7 @@
       <div class="row startrow">
         <button id="startBtn" class="primary big glow" type="button">شروع نماز</button>
         <button id="startBtn2" class="glass big" type="button" hidden>نماز دوم</button>
+        <button id="focusBtn" class="glass big" type="button" title="تمرکز و تنفس پیش از نماز">🧘 تمرکز</button>
       </div>
     </div>
 
@@ -242,7 +243,7 @@
 
   <!-- ============ تنظیمات ============ -->
   <section id="settings" class="screen" hidden data-tab="settings">
-    <header class="top glass pill"><b>تنظیمات</b><span class="muted">نیاز ۳٫۲</span></header>
+    <header class="top glass pill"><b>تنظیمات</b><span class="muted">نیاز ۳٫۳</span></header>
 
     <div class="glass card group">
       <h3>اعلان‌ها و صفحهٔ اذان</h3>
@@ -255,7 +256,7 @@
       <label>کدام اذان‌ها برایت پخش شود؟</label>
       <div class="chips azpick" id="azanPickBox"></div>
       <div class="azsum" id="azanSummary"></div>
-      <p class="note">با دکمهٔ «امتحان» می‌توانی همین حالا بشنوی که در وقت آن نماز چه صدایی پخش می‌شود.</p>
+      <p class="note">با دکمهٔ «امتحان» می‌توانی همین حالا بشنوی که در وقت آن نماز چه صدایی پخش می‌شود. دکمهٔ وسط هم صدای همان نماز را عوض می‌کند (اذان / ملایم / پیش‌فرض گوشی).</p>
       <label>اعلان دائمی تاریخ (بالای صفحه)</label>
       <div class="seg" id="dateNotifSeg"><button type="button" data-v="on">روشن</button><button type="button" data-v="off">خاموش</button></div>
       <label>یادآوری قبل از وقت</label>
@@ -344,6 +345,10 @@
     <div class="glass card group">
       <h3>نمازهای قضا</h3>
       <div id="qazaBox" class="adj"></div>
+      <label>تمرکز و تنفس پیش از نماز</label>
+      <div class="seg" id="focusSeg"><button type="button" data-v="off">خاموش</button><button type="button" data-v="30">۳۰ ثانیه</button><button type="button" data-v="60">۶۰ ثانیه</button><button type="button" data-v="90">۹۰ ثانیه</button></div>
+      <label>خودکار پیش از هر نماز باز شود</label>
+      <div class="seg" id="focusAutoSeg"><button type="button" data-v="off">نه</button><button type="button" data-v="on">آری</button></div>
     </div>
 
     <div class="glass card group">
@@ -406,10 +411,10 @@
     <div class="glass card about">
       <img src="icon.svg" alt="" class="alogo">
       <b class="aname">نیاز</b>
-      <span class="muted">همراه هوشمند نماز · نسخهٔ ۳٫۲</span>
+      <span class="muted">همراه هوشمند نماز · نسخهٔ ۳٫۳</span>
       <div class="sign sm"><span class="signtxt">مجتبی میدانی</span><svg viewBox="0 0 220 24" aria-hidden="true"><path d="M4 16 C40 2 70 26 110 12 S180 6 216 14" fill="none" stroke="url(#sg)" stroke-width="2.4" stroke-linecap="round"/></svg></div>
       <button class="chip" type="button" data-go="creator">دربارهٔ سازنده</button>
-      <button class="chip" type="button" id="showChangelog">تازه‌های نسخهٔ ۳٫۲</button>
+      <button class="chip" type="button" id="showChangelog">تازه‌های نسخهٔ ۳٫۳</button>
     </div>
   </section>
 
@@ -509,6 +514,33 @@
     <div class="row"><button id="tqPrev" type="button" class="glass">قبلی</button></div>
   </section>
 
+  <!-- ============ تمرکز و تنفس ============ -->
+  <section id="focus" class="screen full" hidden>
+    <header class="top glass pill">
+      <button id="fSkip" class="chip" type="button">رد کردن</button>
+      <div class="ptitle" id="fTitle">تمرکز پیش از نماز</div>
+      <span class="spacer"></span>
+    </header>
+    <div class="breath" id="breath" data-ph="in">
+      <span class="bglow"></span>
+      <span class="bring"></span><span class="bring d1"></span><span class="bring d2"></span>
+      <div class="btext">
+        <b id="fPhase">دم بگیر</b>
+        <em id="fSecs">۴</em>
+        <span id="fHint">از بینی، آرام و عمیق</span>
+      </div>
+    </div>
+    <div class="zikr glass card bz">
+      <div class="stepname" id="fZikr">یا الله</div>
+      <div class="fa" id="fNote"></div>
+    </div>
+    <div class="fstat" id="fStat"></div>
+    <div class="row">
+      <button id="fPause" class="glass" type="button">توقف</button>
+      <button id="fPray" class="primary big" type="button">شروع نماز</button>
+    </div>
+  </section>
+
   <!-- ============ پایان ============ -->
   <section id="end" class="screen" hidden>
     <div class="glass card endcard">
@@ -575,6 +607,11 @@
 <!-- برگهٔ پایین صفحه -->
 <div id="sheet" hidden>
   <div id="sheetBody"></div>
+</div>
+
+<!-- برگهٔ کارت اشتراک‌گذاری (زنده) -->
+<div id="shareWrap" hidden>
+  <canvas id="shareCanvas"></canvas>
 </div>
 
 <canvas id="fx" aria-hidden="true"></canvas>

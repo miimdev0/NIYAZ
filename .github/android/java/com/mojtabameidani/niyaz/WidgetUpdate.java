@@ -24,6 +24,7 @@ public final class WidgetUpdate {
         NiyazWidgetMini.redraw(c);
         NiyazWidgetTimes.redraw(c);
         NiyazWidgetWeek.redraw(c);
+        NiyazWidgetQaza.redraw(c);
     }
 
     public static void push(Context c, String payload) {

@@ -258,6 +258,7 @@ public class AlarmModule extends Plugin {
     }
 
     private static Class<?> providerFor(String which) {
+        if ("qaza".equals(which)) return NiyazWidgetQaza.class;
         if ("mini".equals(which)) return NiyazWidgetMini.class;
         if ("times".equals(which)) return NiyazWidgetTimes.class;
         if ("week".equals(which)) return NiyazWidgetWeek.class;
