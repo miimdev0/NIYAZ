@@ -72,7 +72,7 @@ jobs:
           check "assets/public/fonts/Doran.ttf"
 
           rm -rf /tmp/apkx && mkdir -p /tmp/apkx && (cd /tmp/apkx && unzip -qo "$GITHUB_WORKSPACE/$APK")
-          for s in AzanService AzanActivity NiyazWidgetProvider AlarmModule BootReceiver AlarmScheduler Notifier WidgetUpdate; do
+          for s in AzanService AzanActivity NiyazWidgetProvider NiyazWidgetTimes NiyazWidgetQaza NiyazWidgetMini NiyazWidgetWeek AlarmModule BootReceiver AlarmScheduler Notifier WidgetUpdate WidgetKit; do
             if grep -a -q "$s" /tmp/apkx/classes*.dex; then echo "dex ok    $s"; else echo "dex MISSING  $s"; fail=1; fi
           done
           for s in android.permission.USE_EXACT_ALARM android.permission.POST_NOTIFICATIONS android.appwidget.action.APPWIDGET_UPDATE android.permission.FOREGROUND_SERVICE_SPECIAL_USE; do
